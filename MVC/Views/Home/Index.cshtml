@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    string email = Context.Session.GetString("email");
+    string nombre = Context.Session.GetString("nombre");
+}
+
+<div class="text-center">
+    @if (string.IsNullOrEmpty(email))
+    {
+        <h1 class="display-4">Bienvenido a Agencia de Envios</h1>
+        <p>Para continuar, por favor <a asp-controller="Usuario" asp-action="Login">inicia sesión</a>.</p>
+    }
+    else
+    {
+        <h1 class="display-4">Hola, @nombre</h1>
+        <p>Selecciona una opción para comenzar:</p>
+        <a class="btn btn-primary m-2" asp-controller="Envio" asp-action="CreateEnvioComun">Registrar Envío Común</a>
+        <a class="btn btn-primary m-2" asp-controller="Envio" asp-action="CreateEnvioUrgente">Registrar Envío Urgente</a>
+        <a class="btn btn-secondary m-2" asp-controller="Envio" asp-action="Index">Lista de Envíos</a>
+    }
+</div>

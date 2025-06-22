@@ -1,0 +1,67 @@
+﻿@model IEnumerable<MVC.Models.Envios.ListadoEnviosVM>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1 class="text-center my-4">Listado de Envíos</h1>
+
+<p>
+    <a asp-action="CreateEnvioComun" class="btn btn-success mb-3">Crear Nuevo Envío Comun</a>
+    <a asp-action="CreateEnvioUrgente" class="btn btn-success mb-3">Crear Nuevo Envío Urgente</a>
+</p>
+
+<table class="table table-bordered table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Peso</th>
+            <th>Nombre Funcionario</th>
+            <th>Nombre Cliente</th>
+            <th>Estado</th>
+            <th>Entregar</th>
+            <th>Fecha de Entrega</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NroTracking)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Peso)
+                </td>   
+                <td>
+                    @Html.DisplayFor(modelItem => item.FuncionarioNombre)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ClienteNombre)
+                </td>
+                @* <td>
+                    @Html.DisplayFor(modelItem => item.Estado)
+                </td>
+                <td>
+                    @if (item.Estado.ToString() == "En_Proceso")
+                    {
+                        <form asp-action="CambiarEstadoFinalizado" method="post">
+
+                            <input type="hidden" name="NroTracking" value="@item.NroTracking" />
+                            <button type="submit" class="btn btn-success">Finalizar</button>
+                        </form>
+                    }
+                </td> *@
+                <td>
+                    @Html.DisplayFor(modelItem => item.FechaEntrega)
+                </td>
+                <td>
+                    <div class="btn-group">
+                        <a asp-action="AgregarSeguimiento" asp-route-envioId="@item.Id" class="btn btn-info btn-sm ml-2">Agregar Seguimiento</a>
+                    </div>
+                </td>
+            </tr>
+            
+        }
+    </tbody>
+</table>

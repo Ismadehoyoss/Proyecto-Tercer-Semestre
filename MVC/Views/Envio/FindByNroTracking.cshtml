@@ -1,0 +1,19 @@
+﻿
+@{
+	ViewData["Title"] = "FindByNroTracking";
+}
+
+<h1>FindByNroTracking</h1>
+
+<form method="post">
+	<div class="form-group">
+		<label for="nroTracking">Número de Tracking</label>
+		<input type="text" class="form-control" id="nroTracking" name="nroTracking" placeholder="Ingrese el número de tracking" required>
+	</div>
+	<button type="submit" class="btn btn-primary mt-3">Buscar</button>
+</form>	
+@if(Model != null)
+{
+	<p>@Model.Id</p>
+	<p>@Model.NroTracking</p>
+}
