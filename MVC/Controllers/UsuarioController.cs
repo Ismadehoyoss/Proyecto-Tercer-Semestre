@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MVC.Filtro;
 using MVC.Models.Usuarios;
+using Newtonsoft.Json;
 
 
 namespace MVC.Controllers
@@ -10,7 +11,11 @@ namespace MVC.Controllers
 	//[Admin]
 	public class UsuarioController : Controller
 	{
-		
+		private string urlBase = "";
+		public UsuarioController(IConfiguration configuration)
+		{
+			urlBase = configuration.GetValue<string>("UrlBase") + "/Usuario";
+		}
 		// GET: UsuarioController
 
 		public ActionResult Index()
@@ -55,11 +60,14 @@ namespace MVC.Controllers
 		{
 			try
 			{
-			
+				if (ModelState.IsValid) 
+				{
+				
+				}
+				
 			}
 			catch (Exception ex)
 			{
-				ViewBag.DatosExcepcion = ex.StackTrace;
 				ViewBag.Mensaje = "Error en los datos";
 			}
 			return View();
@@ -129,7 +137,7 @@ namespace MVC.Controllers
             }
             return View();
         }
-		public ActionResult Login()
+		public IActionResult Login()
 		{
 			return View();
 		}
@@ -137,14 +145,42 @@ namespace MVC.Controllers
 		// POST: Usuario/Login
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public ActionResult Login(string email, string contraseña)
+		public IActionResult Login(LoginViewModel usuarioLoginVM)
 		{
 			try
 			{
+				if (ModelState.IsValid)
+				{
+					HttpClient client = new HttpClient();
+					Task<HttpResponseMessage> tarea = client.PostAsJsonAsync(urlBase, usuarioLoginVM);
+					tarea.Wait();
+					HttpResponseMessage respuesta = tarea.Result;
+					HttpContent contenido = respuesta.Content;
+					Task<string> body = contenido.ReadAsStringAsync();
+					body.Wait();
+					string datos = body.Result;
+					if (respuesta.IsSuccessStatusCode)
+					{
+						UsuarioLogueadoVM usuario = JsonConvert.DeserializeObject<UsuarioLogueadoVM>(datos);
+						HttpContext.Session.SetString("Token", usuario.Token);
+						HttpContext.Session.SetString("Rol", usuario.Rol.ToString());
+						HttpContext.Session.SetString("Email", usuario.Email);
+						return RedirectToAction("Index", "Envio");
+
+					}
+					else
+					{
+						ViewBag.Mensaje = datos;
+					}
+				}
+				else
+				{
+					ViewBag.Mensaje = "Datos incorrectos";
+				}
 			}
 			catch (Exception ex)
 			{
-				ViewBag.ErrorMessage = ex.Message;
+				ViewBag.Mensaje = "Error en los datos";
 			}
 			return View();
 		}

@@ -12,6 +12,7 @@ namespace LogicaNegocio.InterfacesRepositorios
 		Usuario FindByEmail(string email);
 		IEnumerable<Usuario> FindByRolFuncionario();
 		IEnumerable<Usuario> FindByRolCliente();
-		
+		Usuario FindByEmailAndPassword(string email, string password);
+
 	}
 }

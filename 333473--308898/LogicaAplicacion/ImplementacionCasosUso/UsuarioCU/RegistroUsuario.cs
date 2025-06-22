@@ -9,25 +9,25 @@ using System.Threading.Tasks;
 using LogicaNegocio.EntidadesNegocio;
 using Compartido.DTOs.Usuario;
 
-namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
-{
-	public class RegistroUsuario : IRegistrarUsuario
-	{
-		private IRepositorioUsuario RepoUsuario { get; set; }
+//namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
+//{
+//	//public class RegistroUsuario : IRegistrarUsuario
+//	//{
+//	//	private IRepositorioUsuario RepoUsuario { get; set; }
 
-		public RegistroUsuario(IRepositorioUsuario repoUsuario)
-		{
-			RepoUsuario = repoUsuario;
-		}
+//	//	public RegistroUsuario(IRepositorioUsuario repoUsuario)
+//	//	{
+//	//		RepoUsuario = repoUsuario;
+//	//	}
 
-		public void Ejecutar(UsuarioDTO usuarioDTO)
-		{
-			if (usuarioDTO == null)
-			{
-				throw new ArgumentNullException("Datos Incorrectos");
-			}
-			Usuario usuario = UsuarioMapper.UsuarioFromUsuarioDTO(usuarioDTO);
-			RepoUsuario.Add(usuario);
-		}
-	}
-}
+//		//public void Ejecutar(UsuarioDTO usuarioDTO)
+//		//{
+//		//	if (usuarioDTO == null)
+//		//	{
+//		//		throw new ArgumentNullException("Datos Incorrectos");
+//		//	}
+//		//	Usuario usuario = UsuarioMapper.UsuarioFromUsuarioDTO(usuarioDTO);
+//		//	RepoUsuario.Add(usuario);
+//		//}
+//	}
+//}

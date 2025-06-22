@@ -20,21 +20,15 @@ namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
 		{
 			RepoUsuario = repoUsuario;
 		}
-		public UsuarioDTO Ejecutar(string Email, string contraseña)
+
+		public UsuarioLogueadoDTO Ejecutar(UsuarioDTO usuariodto)
 		{
-			if(string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(contraseña))
+			Usuario usuario = RepoUsuario.FindByEmailAndPassword(usuariodto.Email, usuariodto.Password);
+			if (usuario == null)
 			{
-				throw new ArgumentNullException("Email y Contraseña son requeridos");
+				throw new UsuarioException("Usuario o contraseña incorrectos");
 			}
-
-			Usuario usuario = RepoUsuario.FindByEmail(Email);
-			if(usuario == null)
-			{
-				throw new UsuarioException("Usuario no encontrado");
-			}
-
-			return UsuarioMapper.UsuarioToUsuarioDTO(usuario);
+			return UsuarioMapper.UsuarioToUsuarioLogueadoDTO(usuario);
 		}
-
 	}
 }

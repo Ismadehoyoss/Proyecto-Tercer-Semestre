@@ -100,5 +100,10 @@ namespace LogicaAccesoDatos.Repositorios
 			return Contexto.Usuarios.Where(c => c.Rol == Rol.Cliente).ToList();
 
 		}
+
+		public Usuario FindByEmailAndPassword(string email, string password)
+		{
+			return Contexto.Usuarios.Where(u => u.Email == email && u.Contraseña == password).SingleOrDefault();
+		}
 	}
 }

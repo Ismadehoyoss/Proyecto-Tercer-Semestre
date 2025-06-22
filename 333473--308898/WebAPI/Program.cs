@@ -8,7 +8,9 @@ using LogicaAplicacion.InterfacesCasosUso.AgenciaCU;
 using LogicaAplicacion.InterfacesCasosUso.EnvioCU;
 using LogicaAplicacion.InterfacesCasosUso.UsuarioCU;
 using LogicaNegocio.InterfacesRepositorios;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace WebAPI
 {
@@ -25,7 +27,7 @@ namespace WebAPI
 			builder.Services.AddScoped<IRepositorioEnvio, RepositorioEnvioEF>();
 			builder.Services.AddScoped<IRepositorioAgencia, RepositorioAgenciaEF>();
 			builder.Services.AddScoped<IListadoUsuarios, ListadoUsuarios>();
-			builder.Services.AddScoped<IRegistrarUsuario, RegistroUsuario>();
+			//builder.Services.AddScoped<IRegistrarUsuario, RegistroUsuario>();
 			builder.Services.AddScoped<IEliminarUsuario, EliminarUsuario>();
 			builder.Services.AddScoped<IBuscarUsuario, BuscarUsuario>();
 			builder.Services.AddScoped<IModificarUsuario, ModificarUsuario>();
@@ -45,7 +47,25 @@ namespace WebAPI
 			builder.Services.AddSwaggerGen();
 			builder.Services.AddControllersWithViews();
 			builder.Services.AddSession();
-			
+			var claveSecreta = "ZWRpw6fDo28gZW0gY29tcHV0YWRvcmE=";
+
+			builder.Services.AddAuthentication(aut =>
+			{
+				aut.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				aut.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+			})
+			.AddJwtBearer(aut =>
+			{
+				aut.RequireHttpsMetadata = false;
+				aut.SaveToken = true;
+				aut.TokenValidationParameters = new TokenValidationParameters
+				{
+					ValidateIssuerSigningKey = true,
+					IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.ASCII.GetBytes(claveSecreta)),
+					ValidateIssuer = false,
+					ValidateAudience = false
+				};
+			});
 
 			var app = builder.Build();
 

@@ -1,5 +1,6 @@
 ﻿using Compartido.DTOs.Envios;
 using LogicaAplicacion.InterfacesCasosUso.EnvioCU;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -14,14 +15,22 @@ namespace WebAPI.Controllers
 
 		public IBuscarEnvios CUbuscarEnvios { get; set; }
 
-		public EnvioController(IListadoEnvios cUlistadoEnvios, IBuscarEnvios cUbuscarEnvios)
+		public IAltaEnvioComun CUaltaEnvioComun { get; set; }
+		public IAltaEnvioUrgente CUaltaEnvioUrgente { get; set; }
+		public EnvioController(
+		IListadoEnvios cUlistadoEnvios,
+		IBuscarEnvios cUbuscarEnvios,
+		IAltaEnvioUrgente cUaltaEnvioUrgente,
+		IAltaEnvioComun cUaltaEnvioComun)
 		{
 			CUlistadoEnvios = cUlistadoEnvios;
 			CUbuscarEnvios = cUbuscarEnvios;
+			CUaltaEnvioUrgente = cUaltaEnvioUrgente;
+			CUaltaEnvioComun = cUaltaEnvioComun;
 		}
 
 
-
+		[Authorize]
 		// GET: api/<EnvioController>
 		[HttpGet]
 		public IActionResult Get()
@@ -68,22 +77,42 @@ namespace WebAPI.Controllers
 		}
 
 		// POST api/<EnvioController>
-		[HttpPost]
-		public IActionResult Post([FromBody] AltaEnvioUrgenteDTO envioDTO)
+		[HttpPost("urgente")]
+		public IActionResult PostUrgente([FromBody] AltaEnvioUrgenteDTO envioDTO)
 		{
 			//Add o Create
 			try
 			{
-				if(envioDTO == null)
+				if (envioDTO == null)
 				{
 					return BadRequest("Datos incorrectos");
 				}
-				return Ok(Post);
+
+				CUaltaEnvioUrgente.Ejecutar(envioDTO);
+				return Ok("Envío urgente registrado correctamente.");
 			}
 			catch (Exception)
 			{
+				return StatusCode(500, "Error interno al registrar envío urgente.");
+			}
+		}
 
-				throw;
+		[HttpPost("comun")]
+		public IActionResult PostComun([FromBody] AltaEnvioComunDTO envioDTO)
+		{
+			try
+			{
+				if (envioDTO == null)
+				{
+					return BadRequest("Datos incorrectos");
+				}
+
+				CUaltaEnvioComun.Ejecutar(envioDTO);
+				return Ok("Envío común registrado correctamente.");
+			}
+			catch (Exception)
+			{
+				return StatusCode(500, "Error interno al registrar envío común.");
 			}
 		}
 

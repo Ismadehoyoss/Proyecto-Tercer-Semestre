@@ -11,21 +11,21 @@ namespace Compartido.Mappers
 {
 	public class UsuarioMapper
 	{
-		public static Usuario UsuarioFromUsuarioDTO(UsuarioDTO usuarioDTO)
-		{
-			if(usuarioDTO == null)
-			{
-				throw new ArgumentNullException("Datos Incorrectos");
-			}
+		//public static Usuario UsuarioFromUsuarioDTO(UsuarioDTO usuarioDTO)
+		//{
+		//	if(usuarioDTO == null)
+		//	{
+		//		throw new ArgumentNullException("Datos Incorrectos");
+		//	}
 		
-			return new Usuario(usuarioDTO.Ci,
-					  usuarioDTO.Nombre,
-					  usuarioDTO.Apellido,
-					  usuarioDTO.Email,
-					  usuarioDTO.Contraseña,
-					  usuarioDTO.Rol)
-				;
-		}
+		//	return new Usuario(usuarioDTO.Ci,
+		//			  usuarioDTO.Nombre,
+		//			  usuarioDTO.Apellido,
+		//			  usuarioDTO.Email,
+		//			  usuarioDTO.Contraseña,
+		//			  usuarioDTO.Rol)
+		//		;
+		//}
 
 		public static IEnumerable<ListadoUsuariosDTO> ListadoUsuarioToListadoUsuarioDTO
 			(IEnumerable<Usuario> usuarios)
@@ -74,22 +74,35 @@ namespace Compartido.Mappers
 
         }
 
-		public static UsuarioDTO UsuarioToUsuarioDTO(Usuario usuario)
+		//public static UsuarioDTO UsuarioToUsuarioDTO(Usuario usuario)
+		//{
+		//	if (usuario == null)
+		//	{
+		//		throw new ArgumentNullException("El usuario no puede ser nulo");
+		//	}
+
+		//	return new UsuarioDTO
+		//	{
+		//		Id = usuario.Id, 
+		//		Ci = usuario.Ci.Valor, 
+		//		Nombre = usuario.Nombre, 
+		//		Apellido = usuario.Apellido, 
+		//		Email = usuario.Email, 
+		//		Contraseña = usuario.Contraseña, 
+		//		Rol = usuario.Rol  
+		//	};
+		//}
+
+		public static UsuarioLogueadoDTO UsuarioToUsuarioLogueadoDTO(Usuario usuario)
 		{
 			if (usuario == null)
 			{
 				throw new ArgumentNullException("El usuario no puede ser nulo");
 			}
-
-			return new UsuarioDTO
+			return new UsuarioLogueadoDTO
 			{
-				Id = usuario.Id, 
-				Ci = usuario.Ci.Valor, 
-				Nombre = usuario.Nombre, 
-				Apellido = usuario.Apellido, 
-				Email = usuario.Email, 
-				Contraseña = usuario.Contraseña, 
-				Rol = usuario.Rol  
+				Rol = usuario.Rol.ToString(),
+				Email = usuario.Email
 			};
 		}
 	}

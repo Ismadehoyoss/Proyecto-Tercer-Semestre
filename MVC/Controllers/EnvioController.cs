@@ -12,9 +12,14 @@ namespace MVC.Controllers
 {
 	public class EnvioController : Controller
 	{
-		
+		private string urlBase = "";
 
-		
+		public EnvioController(IConfiguration configuration)
+		{
+			urlBase = configuration.GetValue<string>("UrlBase");
+		}
+
+
 		// GET: Envio
 		public ActionResult Index()
 		{
@@ -55,30 +60,21 @@ namespace MVC.Controllers
 		// GET: Envio/Create
 		public ActionResult CreateEnvioComun()
 		{
-            AltaEnvioComunVM comunVM = new AltaEnvioComunVM();
-			try
+			AltaEnvioComunVM model = new AltaEnvioComunVM
 			{
-			}
-			catch (Exception ex)
-            {
-                ViewBag.Mensaje = ex.Message;
-            }
-
-			return View(comunVM);
-        }
+				Usuarios = new List<UsuarioViewModel>(),
+				Cliente = new List<ClienteViewModel>()
+			};
+			return View(model);
+		}
 		public ActionResult CreateEnvioUrgente()
 		{
-			AltaEnvioUrgenteVM urgenteVM = new AltaEnvioUrgenteVM();
-			try
-			{ 
-
-			}
-			catch (Exception ex)
+			AltaEnvioUrgenteVM model = new AltaEnvioUrgenteVM
 			{
-				ViewBag.Mensaje = "Datos incorrectos";
-			}
-
-			return View(urgenteVM);
+				Usuarios = new List<UsuarioViewModel>(),  
+				Cliente = new List<ClienteViewModel>()    
+			};
+			return View(model);
 		}
 
 		// POST: Envio/Create
@@ -86,13 +82,33 @@ namespace MVC.Controllers
 		[ValidateAntiForgeryToken]
 		public ActionResult CreateEnvioComun(AltaEnvioComunVM envioComun)
 		{
-			try { 
-			
-
+			try
+			{
+				if (ModelState.IsValid)
+				{
+					HttpClient cliente = new HttpClient();
+					Task<HttpResponseMessage> tarea = cliente.PostAsJsonAsync(urlBase + "/envio/comun", envioComun);
+					tarea.Wait();
+					HttpResponseMessage respuesta = tarea.Result;
+					if (respuesta.IsSuccessStatusCode)
+					{
+						return RedirectToAction(nameof(Index));
+					}
+					else
+					{
+						HttpContent contenido = respuesta.Content;
+						Task<string> body = contenido.ReadAsStringAsync();
+						body.Wait();
+						ViewBag.Mensaje = body.Result;
+					}
+				}
+				else
+				{
+					ViewBag.Mensaje = "Datos incorrectos, por favor verifique los campos ingresados.";
+				}
 			}
 			catch (Exception ex)
 			{
-				ViewBag.DatosExcepcion = ex.StackTrace;
 				ViewBag.Mensaje = "Error en los datos";
 			}
 			return View(envioComun);
@@ -103,11 +119,31 @@ namespace MVC.Controllers
 		{
 			try
 			{
-				
+				if (ModelState.IsValid)
+				{
+					HttpClient cliente = new HttpClient();
+					Task<HttpResponseMessage> tarea = cliente.PostAsJsonAsync(urlBase +"/envio/urgente", envioUrgente);
+					tarea.Wait();
+					HttpResponseMessage respuesta = tarea.Result;
+					if (respuesta.IsSuccessStatusCode)
+					{
+						return RedirectToAction(nameof(Index));
+					}
+					else
+					{
+						HttpContent contenido = respuesta.Content;
+						Task<string> body = contenido.ReadAsStringAsync();
+						body.Wait();
+						ViewBag.Mensaje = body.Result;
+					}
+				}
+				else
+				{
+					ViewBag.Mensaje = "Datos incorrectos, por favor verifique los campos ingresados.";
+				}
 			}
 			catch (Exception ex)
 			{
-				ViewBag.DatosExcepcion = ex.StackTrace;
 				ViewBag.Mensaje = "Error en los datos";
 			}
 			return View(envioUrgente);
@@ -218,7 +254,7 @@ namespace MVC.Controllers
 				if (!string.IsNullOrEmpty(nroTracking))
 				{
 					HttpClient envio = new HttpClient();
-					Task<HttpResponseMessage> tarea = envio.GetAsync($"https://localhost:7286/api/Envio/{nroTracking}");
+					Task<HttpResponseMessage> tarea = envio.GetAsync(urlBase+"/FindByNroTracking/" + nroTracking);
 					tarea.Wait();
 					HttpResponseMessage respuesta = tarea.Result;
 					HttpContent contenido = respuesta.Content;

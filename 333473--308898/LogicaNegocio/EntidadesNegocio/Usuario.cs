@@ -19,9 +19,6 @@ namespace LogicaNegocio.EntidadesNegocio
 		public string Contraseña { get; set; }
 		public Rol Rol { get; set; }
 
-
-
-
 		private Usuario() { }
 
 		public Usuario(string ci, string nombre, string apellido, string email, string contraseña, Rol rol)
