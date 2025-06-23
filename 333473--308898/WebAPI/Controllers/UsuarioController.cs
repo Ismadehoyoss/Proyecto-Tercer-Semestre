@@ -1,6 +1,7 @@
 ﻿using Compartido.DTOs.Usuario;
 using LogicaAplicacion.InterfacesCasosUso.UsuarioCU;
 using LogicaNegocio.ExcepcionesEntidades;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.Autenticacion;
@@ -49,8 +50,8 @@ namespace WebAPI.Controllers
 				return StatusCode(500, "Error");
 			}
 		}
-
-		[HttpPut]
+		[Authorize(Roles = "Cliente")]
+        [HttpPut]
 		public IActionResult CambiarPassword(CambioPasswordDTO dto)
 		{
 			try

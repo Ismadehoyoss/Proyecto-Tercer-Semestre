@@ -191,13 +191,13 @@ namespace MVC.Controllers
 			HttpContext.Session.Clear();
 			return RedirectToAction("Login" , "Usuario");
 		}
-        [Authorize(Roles = "Cliente")]
+        
         public IActionResult CambioPassword()
 		{
 			return View();
 		}
         // Replacing the incorrect attribute usage
-        [Authorize(Roles = "Cliente")]
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CambioPassword(CambioPasswordVM passwordVM)
@@ -208,7 +208,8 @@ namespace MVC.Controllers
                 {
                     passwordVM.Email = HttpContext.Session.GetString("Email");
                     HttpClient client = new HttpClient();
-                    Task<HttpResponseMessage> tarea = client.PutAsJsonAsync(urlBase, passwordVM);
+					client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+                    Task <HttpResponseMessage> tarea = client.PutAsJsonAsync(urlBase, passwordVM);
                     tarea.Wait();
                     HttpResponseMessage respuesta = tarea.Result;
                     HttpContent contenido = respuesta.Content;
