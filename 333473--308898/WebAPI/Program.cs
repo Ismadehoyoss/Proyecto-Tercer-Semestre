@@ -40,7 +40,8 @@ namespace WebAPI
 			builder.Services.AddScoped<IListadoAgencias, ListadoAgencia>();
 			builder.Services.AddScoped<IAgregarSeguimiento, AgregarSeguimiento>();
 			builder.Services.AddScoped<IBuscarEnvios, BuscarEnvios>();
-			string cadenaConexion = builder.Configuration.GetConnectionString("cadenaConexion");
+			builder.Services.AddScoped<IModificarPassword, ModificarPassword>();
+            string cadenaConexion = builder.Configuration.GetConnectionString("cadenaConexion");
 			builder.Services.AddDbContext<DemoContext>(option => option.UseSqlServer(cadenaConexion));
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();

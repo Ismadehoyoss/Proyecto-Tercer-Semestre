@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MVC.Filtro;
@@ -141,7 +142,7 @@ namespace MVC.Controllers
 		{
 			return View();
 		}
-
+		
 		// POST: Usuario/Login
 		[HttpPost]
 		[ValidateAntiForgeryToken]
@@ -190,5 +191,52 @@ namespace MVC.Controllers
 			HttpContext.Session.Clear();
 			return RedirectToAction("Login" , "Usuario");
 		}
+        [Authorize(Roles = "Cliente")]
+        public IActionResult CambioPassword()
+		{
+			return View();
+		}
+        // Replacing the incorrect attribute usage
+        [Authorize(Roles = "Cliente")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CambioPassword(CambioPasswordVM passwordVM)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    passwordVM.Email = HttpContext.Session.GetString("Email");
+                    HttpClient client = new HttpClient();
+                    Task<HttpResponseMessage> tarea = client.PutAsJsonAsync(urlBase, passwordVM);
+                    tarea.Wait();
+                    HttpResponseMessage respuesta = tarea.Result;
+                    HttpContent contenido = respuesta.Content;
+                    Task<string> body = contenido.ReadAsStringAsync();
+                    body.Wait();
+                    string datos = body.Result;
+                    if (respuesta.IsSuccessStatusCode)
+                    {
+                        ViewBag.Mensaje = datos;
+                        return RedirectToAction("Index", "Envio");
+                    }
+                    else
+                    {
+                        ViewBag.Mensaje = datos;
+                    }
+                }
+                else
+                {
+                    ViewBag.Mensaje = "Datos Incorrectos";
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Mensaje = "Error en los Datos";
+            }
+            return View();
+        }
+
+
 	}
 }

@@ -105,5 +105,18 @@ namespace Compartido.Mappers
 				Email = usuario.Email
 			};
 		}
+
+		public static CambioPasswordDTO UsuarioToCambioPasswordDTO(Usuario usuario)
+		{
+			if(usuario == null)
+			{
+				throw new ArgumentNullException("El usuario no puede ser nulo");
+			}
+			return new CambioPasswordDTO
+			{
+				Email = usuario.Email,
+				PasswordActual = usuario.Contraseña
+			};
+		}
 	}
 }

@@ -12,9 +12,12 @@ namespace WebAPI.Controllers
 	public class UsuarioController : ControllerBase
 	{
 		public ILoginUsuario CULogin { get; set; }
-		public UsuarioController(ILoginUsuario cULogin)
+
+		public IModificarPassword CUPassword { get; set; }
+		public UsuarioController(ILoginUsuario cULogin, IModificarPassword cUPassword)
 		{
 			CULogin = cULogin;
+			CUPassword = cUPassword;
 		}
 		[HttpPost]
 		public IActionResult Login(UsuarioDTO usuarioDTO)
@@ -40,6 +43,30 @@ namespace WebAPI.Controllers
 			{
 
 				return NotFound(ex.Message);
+			}
+			catch(Exception ex)
+			{
+				return StatusCode(500, "Error");
+			}
+		}
+
+		[HttpPut]
+		public IActionResult CambiarPassword(CambioPasswordDTO dto)
+		{
+			try
+			{
+				if(dto == null)
+				{
+					return BadRequest("Datos Incorrectos");
+				}
+				CUPassword.Ejecutar(dto);
+				return Ok("Contraseña cambiada correctamente");
+				
+			}
+			catch (UsuarioException ex)
+			{
+
+				return BadRequest(ex.Message);
 			}
 			catch(Exception ex)
 			{
