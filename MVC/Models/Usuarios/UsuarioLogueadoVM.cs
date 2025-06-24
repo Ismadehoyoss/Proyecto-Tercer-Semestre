@@ -7,5 +7,7 @@
 		public string Email { get; set; }
 
 		public Rol Rol { get; set; }
+
+		public int Id { get; set; }
 	}
 }

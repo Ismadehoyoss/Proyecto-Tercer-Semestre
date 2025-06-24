@@ -15,34 +15,34 @@
     <style>
         /* Si querés poner estilos rápidos aquí */
         body {
-            font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(to right, #a0c8f0, #e0f0ff);
-            min-height: 100vh;
+        font-family: 'Montserrat', sans-serif;
+        background: linear-gradient(to right, #a0c8f0, #e0f0ff);
+        min-height: 100vh;
         }
 
         .navbar-brand img {
-            height: 30px;
-            margin-right: 10px;
+        height: 30px;
+        margin-right: 10px;
         }
 
         .navbar {
-            background-color: #0077b6 !important; /* Azul viajero */
+        background-color: #0077b6 !important; /* Azul viajero */
         }
 
-            .navbar .nav-link {
-                color: #caf0f8 !important;
-                font-weight: 600;
-            }
+        .navbar .nav-link {
+        color: #caf0f8 !important;
+        font-weight: 600;
+        }
 
-                .navbar .nav-link:hover {
-                    color: #90e0ef !important;
-                }
+        .navbar .nav-link:hover {
+        color: #90e0ef !important;
+        }
 
         footer {
-            background-color: #0077b6;
-            color: #caf0f8;
-            padding: 15px 0;
-            margin-top: 40px;
+        background-color: #0077b6;
+        color: #caf0f8;
+        padding: 15px 0;
+        margin-top: 40px;
         }
     </style>
 </head>
@@ -55,25 +55,34 @@
                     Agencia de Envios - Obligatorio P3 2025
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         @if (Context.Session.GetString("Token") != null)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Usuario" asp-action="Index">Gestión de Usuarios</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Envio" asp-action="CreateEnvioComun">Registrar Envío Común</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Envio" asp-action="CreateEnvioUrgente">Registrar Envío Urgente</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Envio" asp-action="Index">Lista de Envíos</a>
-                            </li>
+                            var rol = Context.Session.GetString("Rol");
+
+                            if (rol == "Administrador")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Envio" asp-action="Index">Listado Envios</a>
+                                </li>
+                            }
+                            else if (rol == "Cliente")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Envio" asp-action="MisEnvios">Mis Envíos</a>
+                                </li>
+                            }
+                            else if (rol == "Funcionario")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Envio" asp-action="Index">Listado Envios</a>
+                                </li>
+                            }
+
                             <li class="nav-item">
                                 <a class="nav-link text-danger" asp-controller="Usuario" asp-action="Logout">Logout</a>
                             </li>

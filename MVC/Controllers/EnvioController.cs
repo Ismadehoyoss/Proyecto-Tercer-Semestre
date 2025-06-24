@@ -23,11 +23,16 @@ namespace MVC.Controllers
 		// GET: Envio
 		public ActionResult Index()
 		{
+			string rol = HttpContext.Session.GetString("Rol");
+			if (rol == "Cliente")
+			{
+				return RedirectToAction("MisEnvios", "Envio");
+			}
 			List<ListadoEnviosVM> listadoEnviosVMs = new List<ListadoEnviosVM>();
 			try
 			{
-				HttpClient envio = new HttpClient();
-				Task<HttpResponseMessage> tarea = envio.GetAsync("https://localhost:7286/api/Envio");
+				HttpClient client = new HttpClient();
+				Task<HttpResponseMessage> tarea = client.GetAsync(urlBase+ "/Envio");
 				tarea.Wait();
 				HttpResponseMessage respuesta = tarea.Result;
 				HttpContent contenido = respuesta.Content;
@@ -49,6 +54,76 @@ namespace MVC.Controllers
 			}
 
 			return View(listadoEnviosVMs);
+		}
+
+
+		public ActionResult MisEnvios()
+		{
+			string rol = HttpContext.Session.GetString("Rol");
+
+			if (rol != "Cliente")
+			{
+				
+				return RedirectToAction("Index", "Envio"); 
+			}
+			List<ListadoEnviosVM> listadoEnviosVMs = new List<ListadoEnviosVM>();
+			try
+			{
+				int usuarioId = (int)HttpContext.Session.GetInt32("Id");
+				HttpClient client = new HttpClient();
+				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+				Task<HttpResponseMessage> tarea = client.GetAsync(urlBase + "/Envio/cliente/" + usuarioId);
+				tarea.Wait();
+				HttpResponseMessage respuesta = tarea.Result;
+				HttpContent contenido = respuesta.Content;
+				Task<string> body = contenido.ReadAsStringAsync();
+				body.Wait();
+				string datos = body.Result;
+				if (respuesta.IsSuccessStatusCode)
+				{
+					listadoEnviosVMs = JsonConvert.DeserializeObject<List<ListadoEnviosVM>>(datos);
+				}
+				else
+				{
+					ViewBag.Mensaje = datos;
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Datos incorrectos";
+			}
+			return View(listadoEnviosVMs);
+		}
+
+		public ActionResult Seguimientos(int envioId)
+		{
+			List<ListadoSeguimientosVM> listadoSeguimientosVM = new List<ListadoSeguimientosVM>();
+			try
+			{
+				HttpClient client = new HttpClient();
+				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+				Task<HttpResponseMessage> tarea = client.GetAsync(urlBase + "/seguimiento/envio/" + envioId);
+				tarea.Wait();
+				HttpResponseMessage respuesta = tarea.Result;
+				HttpContent contenido = respuesta.Content;
+				Task<string> body = contenido.ReadAsStringAsync();
+				body.Wait();
+				string datos = body.Result;
+				if (respuesta.IsSuccessStatusCode)
+				{
+					listadoSeguimientosVM = JsonConvert.DeserializeObject<List<ListadoSeguimientosVM>>(datos);
+				}
+				else
+				{
+					ViewBag.Mensaje = datos;
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Datos Incorrectos";
+				
+			}
+			return View(listadoSeguimientosVM);
 		}
 
 		// GET: Envio/Details/5

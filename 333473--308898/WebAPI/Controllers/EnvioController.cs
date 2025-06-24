@@ -17,20 +17,23 @@ namespace WebAPI.Controllers
 
 		public IAltaEnvioComun CUaltaEnvioComun { get; set; }
 		public IAltaEnvioUrgente CUaltaEnvioUrgente { get; set; }
+
+		public IListadoEnviosClienteLogueado CUlistadoEnviosClienteLogueado { get; set; }
 		public EnvioController(
 		IListadoEnvios cUlistadoEnvios,
 		IBuscarEnvios cUbuscarEnvios,
 		IAltaEnvioUrgente cUaltaEnvioUrgente,
-		IAltaEnvioComun cUaltaEnvioComun)
+		IAltaEnvioComun cUaltaEnvioComun,
+		IListadoEnviosClienteLogueado cUlistadoEnviosClienteLogueado)
 		{
 			CUlistadoEnvios = cUlistadoEnvios;
 			CUbuscarEnvios = cUbuscarEnvios;
 			CUaltaEnvioUrgente = cUaltaEnvioUrgente;
 			CUaltaEnvioComun = cUaltaEnvioComun;
+			CUlistadoEnviosClienteLogueado = cUlistadoEnviosClienteLogueado;
 		}
 
 
-		[Authorize]
 		// GET: api/<EnvioController>
 		[HttpGet]
 		public IActionResult Get()
@@ -53,6 +56,28 @@ namespace WebAPI.Controllers
 				return StatusCode(500, "Error interno");
 			}
 
+		}
+		[Authorize(Roles = "Cliente")]
+		[HttpGet("cliente/{clienteId}")]
+		public IActionResult GetPorCliente(int clienteId)
+		{
+			//FindAll por Cliente Logueado
+			try
+			{
+				List<ListadoEnviosDTO> envios = CUlistadoEnviosClienteLogueado.Ejecutar(clienteId).ToList();
+				if (envios == null || envios.Count == 0)
+				{
+					return NotFound("No se encontraron envíos para el cliente logueado.");
+				}
+				else
+				{
+					return Ok(envios);
+				}
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, "Error interno");
+			}
 		}
 
 		// GET api/<EnvioController>/5

@@ -3,9 +3,11 @@ using LogicaAccesoDatos;
 using LogicaAccesoDatos.Repositorios;
 using LogicaAplicacion.ImplementacionCasosUso.AgenciaCU;
 using LogicaAplicacion.ImplementacionCasosUso.EnvioCU;
+using LogicaAplicacion.ImplementacionCasosUso.SeguimientoCU;
 using LogicaAplicacion.ImplementacionCasosUso.UsuarioCU;
 using LogicaAplicacion.InterfacesCasosUso.AgenciaCU;
 using LogicaAplicacion.InterfacesCasosUso.EnvioCU;
+using LogicaAplicacion.InterfacesCasosUso.SeguimientoCU;
 using LogicaAplicacion.InterfacesCasosUso.UsuarioCU;
 using LogicaNegocio.InterfacesRepositorios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,6 +28,7 @@ namespace WebAPI
 			builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuarioEF>();
 			builder.Services.AddScoped<IRepositorioEnvio, RepositorioEnvioEF>();
 			builder.Services.AddScoped<IRepositorioAgencia, RepositorioAgenciaEF>();
+			builder.Services.AddScoped<IRepositorioSeguimiento, RepositorioSeguimientoEF>();
 			builder.Services.AddScoped<IListadoUsuarios, ListadoUsuarios>();
 			//builder.Services.AddScoped<IRegistrarUsuario, RegistroUsuario>();
 			builder.Services.AddScoped<IEliminarUsuario, EliminarUsuario>();
@@ -41,7 +44,10 @@ namespace WebAPI
 			builder.Services.AddScoped<IAgregarSeguimiento, AgregarSeguimiento>();
 			builder.Services.AddScoped<IBuscarEnvios, BuscarEnvios>();
 			builder.Services.AddScoped<IModificarPassword, ModificarPassword>();
-            string cadenaConexion = builder.Configuration.GetConnectionString("cadenaConexion");
+			builder.Services.AddScoped<IListadoEnviosClienteLogueado, ListadoEnviosClienteLogueado>();
+			builder.Services.AddScoped<IListadoSeguimientos, ListadoSeguimientosCU>();
+			
+			string cadenaConexion = builder.Configuration.GetConnectionString("cadenaConexion");
 			builder.Services.AddDbContext<DemoContext>(option => option.UseSqlServer(cadenaConexion));
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();

@@ -1,0 +1,50 @@
+﻿@model IEnumerable<MVC.Models.Envios.ListadoEnviosVM>
+
+@{
+    ViewData["Title"] = "MisEnvios";
+}
+
+<h1>MisEnvios</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Id)</th>
+            <th>@Html.DisplayNameFor(model => model.Peso)</th>
+            <th>@Html.DisplayNameFor(model => model.NroTracking)</th>
+            <th>@Html.DisplayNameFor(model => model.FuncionarioNombre)</th>
+            <th>@Html.DisplayNameFor(model => model.ClienteNombre)</th>
+            <th>@Html.DisplayNameFor(model => model.Estado)</th>
+            <th>@Html.DisplayNameFor(model => model.FechaEntrega)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Id)</td>
+                <td>@Html.DisplayFor(modelItem => item.Peso)</td>
+                <td>@Html.DisplayFor(modelItem => item.NroTracking)</td>
+                <td>@Html.DisplayFor(modelItem => item.FuncionarioNombre)</td>
+                <td>@Html.DisplayFor(modelItem => item.ClienteNombre)</td>
+                <td>@Html.DisplayFor(modelItem => item.Estado)</td>
+                <td>
+                    @{
+                        if (item.FechaEntrega == DateTime.MinValue)
+                        {
+                            <text>No entregado</text>
+                        }
+                        else
+                        {
+                            @item.FechaEntrega.ToString("dd/MM/yyyy HH:mm:ss")
+                        }
+                    }
+                </td>
+                <td>
+                    @Html.ActionLink("Seguimientos", "Seguimientos", new { envioId = item.Id }) |
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

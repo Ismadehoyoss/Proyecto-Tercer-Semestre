@@ -89,6 +89,11 @@ namespace LogicaAccesoDatos.Repositorios
 			}
 		}
 
-		
+		public IEnumerable<Envio> FindByCliente(int clienteId)
+		{
+			return Contexto.Envios.Where(e => e.ClienteId == clienteId).OrderByDescending(e => e.FechaEntrega).Include(e => e.Funcionario).Include(e => e.Cliente).ToList();
+		}
+
+
 	}
 }

@@ -12,6 +12,8 @@ namespace LogicaNegocio.InterfacesRepositorios
         Envio FindByNroTracking(string NroTracking);
 
 		void FinalizarEnvio(string NroTracking);
-		
+
+		IEnumerable<Envio>FindByCliente(int clienteId);
+
 	}
 }

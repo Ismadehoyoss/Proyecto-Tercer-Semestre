@@ -166,7 +166,16 @@ namespace MVC.Controllers
 						HttpContext.Session.SetString("Token", usuario.Token);
 						HttpContext.Session.SetString("Rol", usuario.Rol.ToString());
 						HttpContext.Session.SetString("Email", usuario.Email);
-						return RedirectToAction("Index", "Envio");
+						HttpContext.Session.SetInt32("Id", usuario.Id);
+						if (usuario.Rol.ToString() == "Administrador" || usuario.Rol.ToString() == "Funcionario")
+						{
+							return RedirectToAction("Index", "Envio");
+						}
+						else if (usuario.Rol.ToString() == "Cliente")
+						{
+							return RedirectToAction("MisEnvios", "Envio");
+						}
+							
 
 					}
 					else

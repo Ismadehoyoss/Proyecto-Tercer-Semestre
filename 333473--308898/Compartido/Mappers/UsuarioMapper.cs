@@ -102,7 +102,8 @@ namespace Compartido.Mappers
 			return new UsuarioLogueadoDTO
 			{
 				Rol = usuario.Rol.ToString(),
-				Email = usuario.Email
+				Email = usuario.Email,
+				Id = usuario.Id
 			};
 		}
 
