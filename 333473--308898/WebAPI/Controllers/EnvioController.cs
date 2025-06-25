@@ -17,6 +17,7 @@ namespace WebAPI.Controllers
 
 		public IAltaEnvioComun CUaltaEnvioComun { get; set; }
 		public IAltaEnvioUrgente CUaltaEnvioUrgente { get; set; }
+		public IListadoEnviosxFecha CUlistadoxFechas { get; set; }
 
 		public IListadoEnviosClienteLogueado CUlistadoEnviosClienteLogueado { get; set; }
 		public EnvioController(
@@ -24,13 +25,15 @@ namespace WebAPI.Controllers
 		IBuscarEnvios cUbuscarEnvios,
 		IAltaEnvioUrgente cUaltaEnvioUrgente,
 		IAltaEnvioComun cUaltaEnvioComun,
-		IListadoEnviosClienteLogueado cUlistadoEnviosClienteLogueado)
+		IListadoEnviosClienteLogueado cUlistadoEnviosClienteLogueado,
+		IListadoEnviosxFecha cUlistadoxFechas)
 		{
 			CUlistadoEnvios = cUlistadoEnvios;
 			CUbuscarEnvios = cUbuscarEnvios;
 			CUaltaEnvioUrgente = cUaltaEnvioUrgente;
 			CUaltaEnvioComun = cUaltaEnvioComun;
 			CUlistadoEnviosClienteLogueado = cUlistadoEnviosClienteLogueado;
+			CUlistadoxFechas = cUlistadoxFechas;
 		}
 
 
@@ -73,6 +76,31 @@ namespace WebAPI.Controllers
 				{
 					return Ok(envios);
 				}
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, "Error interno");
+			}
+		}
+		[Authorize(Roles = "Cliente")]
+		[HttpGet("porFechas")]
+		public IActionResult GetEnviosPorFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId)
+		{
+			try
+			{
+				if (fechaInicio == DateTime.MinValue || fechaFin == DateTime.MinValue)
+					return BadRequest("Las fechas no pueden estar vacías.");
+
+				if (fechaInicio > fechaFin)
+					return BadRequest("La fecha de inicio no puede ser mayor que la fecha de fin.");
+
+				// Ejecutar consulta filtrando por fechas y cliente
+				List<ListadoEnviosDTO> envios = CUlistadoxFechas.Ejecutar(fechaInicio, fechaFin, clienteId).ToList();
+
+				if (envios == null || envios.Count == 0)
+					return NotFound("No se encontraron envíos en el rango de fechas para este cliente.");
+
+				return Ok(envios);
 			}
 			catch (Exception ex)
 			{

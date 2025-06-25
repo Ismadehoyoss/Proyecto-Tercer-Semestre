@@ -11,6 +11,7 @@ namespace MVC.Models.Envios
 		public int FuncionarioId { get; set; }
 		public int ClienteId { get; set; }
 		public int AgenciaId { get; set; }
+		public DateTime FechaEstimada { get; set; }
 
 		public IEnumerable<UsuarioViewModel> Usuarios { get; set; }
 			= new List<UsuarioViewModel>();

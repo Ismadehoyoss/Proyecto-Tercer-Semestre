@@ -17,5 +17,6 @@ namespace Compartido.DTOs.Envios
 		public bool Entregado { get; set; }
 		public int TiempoEntrega { get; set; }
 		public Estado Estado { get; set; }
+		public DateTime FechaEstimada { get; set; }
 	}
 }

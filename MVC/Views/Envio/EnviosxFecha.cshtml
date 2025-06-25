@@ -1,0 +1,80 @@
+﻿@model IEnumerable<MVC.Models.Envios.ListadoEnviosVM>
+
+@{
+    ViewData["Title"] = "Envios por Fecha";
+}
+
+<h1 class="text-center my-4">Envíos por Fecha</h1>
+
+<!-- Formulario para filtrar por fechas -->
+<form method="get" asp-action="EnviosxFecha" class="mb-3">
+    <div class="row">
+        <div class="col-md-4">
+            <label for="fechaInicio" class="form-label">Fecha Inicio:</label>
+            <input type="date" id="fechaInicio" name="fechaInicio" class="form-control" required />
+        </div>
+        <div class="col-md-4">
+            <label for="fechaFin" class="form-label">Fecha Fin:</label>
+            <input type="date" id="fechaFin" name="fechaFin" class="form-control" required />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </div>
+    </div>
+</form>
+
+<p>
+    <a asp-action="MisEnvios" class="btn btn-secondary mb-3">Volver a Mis Envíos</a>
+</p>
+
+<table class="table table-bordered table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.NroTracking)</th>
+            <th>@Html.DisplayNameFor(model => model.Peso)</th>
+            <th>@Html.DisplayNameFor(model => model.FuncionarioNombre)</th>
+            <th>@Html.DisplayNameFor(model => model.ClienteNombre)</th>
+            <th>@Html.DisplayNameFor(model => model.Estado)</th>
+            <th>@Html.DisplayNameFor(model => model.FechaEntrega)</th>
+            <th>@Html.DisplayNameFor(Model => Model.FechaEstimada)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.NroTracking</td>
+                    <td>@item.Peso</td>
+                    <td>@item.FuncionarioNombre</td>
+                    <td>@item.ClienteNombre</td>
+                    <td>@item.Estado</td>
+                    <td>
+                        @{
+                            if (item.FechaEntrega == DateTime.MinValue)
+                            {
+                                <span class="text-danger fw-bold">No entregado</span>
+                            }
+                            else
+                            {
+                                @item.FechaEntrega.ToString("dd/MM/yyyy HH:mm:ss")
+                            }
+                        }
+                    </td>
+                    <td>
+                        @(item.FechaEstimada != null && item.FechaEstimada != DateTime.MinValue
+                            ? item.FechaEstimada.ToString("dd/MM/yyyy")
+                            : "Sin fecha estimada")
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="6" class="text-center text-muted">No hay envíos para mostrar.</td>
+            </tr>
+        }
+    </tbody>
+</table>

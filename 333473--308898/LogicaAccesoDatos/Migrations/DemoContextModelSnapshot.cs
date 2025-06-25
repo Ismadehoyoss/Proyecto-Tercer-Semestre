@@ -46,7 +46,7 @@ namespace LogicaAccesoDatos.Migrations
 
                     b.HasIndex("UbicacionId");
 
-                    b.ToTable("Agencias", (string)null);
+                    b.ToTable("Agencias");
                 });
 
             modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Envio", b =>
@@ -71,6 +71,9 @@ namespace LogicaAccesoDatos.Migrations
                     b.Property<DateTime?>("FechaEntrega")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("FechaEstimada")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("FuncionarioId")
                         .HasColumnType("int");
 
@@ -87,7 +90,7 @@ namespace LogicaAccesoDatos.Migrations
 
                     b.HasIndex("FuncionarioId");
 
-                    b.ToTable("Envios", (string)null);
+                    b.ToTable("Envios");
 
                     b.HasDiscriminator().HasValue("Envio");
 
@@ -121,7 +124,7 @@ namespace LogicaAccesoDatos.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Seguimientos", (string)null);
+                    b.ToTable("Seguimientos");
                 });
 
             modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Ubicacion", b =>
@@ -140,7 +143,7 @@ namespace LogicaAccesoDatos.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Ubicacion", (string)null);
+                    b.ToTable("Ubicacion");
                 });
 
             modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Usuario", b =>
@@ -181,7 +184,7 @@ namespace LogicaAccesoDatos.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Comun", b =>

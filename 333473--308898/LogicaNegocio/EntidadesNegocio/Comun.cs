@@ -11,8 +11,8 @@ namespace LogicaNegocio.EntidadesNegocio
 	{
 		public Agencia Agencia { get; set; }
 
-		public Comun(string numeroTracking, Usuario funcionario, Usuario cliente, int peso, Estado estado, List<Seguimiento> seguimientos, Agencia agencia)
-		: base( numeroTracking, funcionario, cliente, peso, estado)
+		public Comun(string numeroTracking, Usuario funcionario, Usuario cliente, int peso, Estado estado, List<Seguimiento> seguimientos, Agencia agencia, DateTime fechaEstimada)
+		: base( numeroTracking, funcionario, cliente, peso, estado, fechaEstimada)
 		{
 			Agencia = agencia;
 		}

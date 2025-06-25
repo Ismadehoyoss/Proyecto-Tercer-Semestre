@@ -15,5 +15,6 @@ namespace Compartido.DTOs.Envios
 		public int ClienteId { get; set; }
 		public int AgenciaId { get; set; }
 		public Estado Estado { get; set; }
+		public DateTime FechaEstimada { get; set; }
 	}
 }

@@ -59,6 +59,7 @@ namespace LogicaAccesoDatos.Repositorios
 				envioEncontrado.Estado = item.Estado;
 				envioEncontrado.Peso = item.Peso;
 				envioEncontrado.FechaEntrega = item.FechaEntrega;
+				envioEncontrado.FechaEstimada = item.FechaEstimada;
 
 				
 				Contexto.SaveChanges();
@@ -92,6 +93,18 @@ namespace LogicaAccesoDatos.Repositorios
 		public IEnumerable<Envio> FindByCliente(int clienteId)
 		{
 			return Contexto.Envios.Where(e => e.ClienteId == clienteId).OrderByDescending(e => e.FechaEntrega).Include(e => e.Funcionario).Include(e => e.Cliente).ToList();
+		}
+
+		public IEnumerable<Envio> FindByFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId)
+		{
+			return Contexto.Envios
+				.Where(e => (e.FechaEstimada ?? DateTime.MaxValue) >= fechaInicio
+							&& (e.FechaEstimada ?? DateTime.MinValue) <= fechaFin
+							&& e.ClienteId == clienteId)
+				.OrderByDescending(e => e.NroTracking)
+				.Include(e => e.Funcionario)
+				.Include(e => e.Cliente)
+				.ToList();
 		}
 
 

@@ -46,7 +46,8 @@ namespace WebAPI
 			builder.Services.AddScoped<IModificarPassword, ModificarPassword>();
 			builder.Services.AddScoped<IListadoEnviosClienteLogueado, ListadoEnviosClienteLogueado>();
 			builder.Services.AddScoped<IListadoSeguimientos, ListadoSeguimientosCU>();
-			
+			builder.Services.AddScoped<IListadoEnviosxFecha, ListadoEnviosxFecha>();
+
 			string cadenaConexion = builder.Configuration.GetConnectionString("cadenaConexion");
 			builder.Services.AddDbContext<DemoContext>(option => option.UseSqlServer(cadenaConexion));
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

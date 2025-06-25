@@ -10,6 +10,7 @@ namespace MVC.Models.Envios
 		public string FuncionarioNombre { get; set; }
 		public string ClienteNombre { get; set; }
 		public int Estado { get; set; }
+		public DateTime FechaEstimada { get; set; }
 		public DateTime FechaEntrega { get; set; }
 	}
 }

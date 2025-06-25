@@ -25,17 +25,20 @@ namespace LogicaNegocio.EntidadesNegocio
         public Estado Estado { get; set; }
 
         public IEnumerable<Seguimiento> Seguimientos { get; set; }
+        public DateTime? FechaEstimada { get; set; }
 
         public DateTime? FechaEntrega { get; set; }
         protected Envio() { }
 
-        public Envio(string nroTracking, Usuario funcionario, Usuario cliente, int peso, Estado estado)
+        public Envio(string nroTracking, Usuario funcionario, Usuario cliente, int peso, Estado estado,DateTime fechaEstimada)
         {
             NroTracking = nroTracking;
             Funcionario = funcionario;
             Cliente = cliente;
             Peso = peso;
             Estado = estado;
+            FechaEstimada = fechaEstimada;
+
         }
     }
 		public enum Estado

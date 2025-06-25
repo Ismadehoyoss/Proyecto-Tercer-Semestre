@@ -94,6 +94,47 @@ namespace MVC.Controllers
 			}
 			return View(listadoEnviosVMs);
 		}
+		public ActionResult EnviosxFecha(DateTime fechaInicio, DateTime fechaFin)
+		{
+
+			List<ListadoEnviosVM> listadoEnviosVMs = new List<ListadoEnviosVM>();
+			if (fechaInicio == DateTime.MinValue || fechaFin == DateTime.MinValue)
+			{
+				ViewBag.Mensaje = "Debe ingresar ambas fechas para filtrar.";
+				return View(new List<ListadoEnviosVM>());
+			}
+			try
+			{
+				int clienteId = (int)HttpContext.Session.GetInt32("Id");
+				if (clienteId == 0)
+				{
+					ViewBag.Mensaje = "Cliente no identificado.";
+					return View(listadoEnviosVMs);
+				}
+				HttpClient client = new HttpClient();
+				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+				Task<HttpResponseMessage> tarea = client.GetAsync(urlBase + $"/envio/porFechas?fechaInicio={fechaInicio:yyyy-MM-dd}&fechaFin={fechaFin:yyyy-MM-dd}&clienteId={clienteId}");
+				tarea.Wait();
+				HttpResponseMessage respuesta = tarea.Result;
+				HttpContent contenido = respuesta.Content;
+				Task<string> body = contenido.ReadAsStringAsync();
+				body.Wait();
+				string datos = body.Result;
+				if (respuesta.IsSuccessStatusCode)
+				{
+					listadoEnviosVMs = JsonConvert.DeserializeObject<List<ListadoEnviosVM>>(datos);
+				}
+				else
+				{
+					ViewBag.Mensaje = datos;
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Datos Incorrectos";
+			}
+			return View(listadoEnviosVMs);
+		}
 
 		public ActionResult Seguimientos(int envioId)
 		{

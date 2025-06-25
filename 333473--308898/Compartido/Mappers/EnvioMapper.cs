@@ -20,7 +20,8 @@ namespace Compartido.Mappers
 					comunDTO.Peso,
 					Estado.En_Proceso,
 					new List<Seguimiento>(),
-					agencia);
+					agencia,
+					comunDTO.FechaEstimada);
 
 
 
@@ -36,12 +37,14 @@ namespace Compartido.Mappers
 				new List<Seguimiento>(),
 				urgenteDTO.DireccionPostal,
 				urgenteDTO.Entregado,
-				urgenteDTO.TiempoEntrega);
+				urgenteDTO.TiempoEntrega,
+				urgenteDTO.FechaEstimada);
 
 		}
-		public static ListadoEnviosDTO EnvioToListadoDTO
-			(Envio envio)
+		public static ListadoEnviosDTO EnvioToListadoDTO(Envio envio)
 		{
+			if (envio == null)
+				return null;
 			return new ListadoEnviosDTO()
 			{
 				Id = envio.Id,
@@ -50,10 +53,12 @@ namespace Compartido.Mappers
 				FuncionarioNombre = envio.Funcionario?.Nombre ?? "Sin funcionario",
 				ClienteNombre = envio.Cliente?.Nombre ?? "Sin cliente",
 				Estado = envio.Estado,
-				FechaEntrega = envio.FechaEntrega ?? DateTime.MinValue
+				FechaEntrega = envio.FechaEntrega ?? DateTime.MinValue,
+				FechaEstimada = envio.FechaEstimada?? DateTime.MinValue
 			};
-
 		}
+
+		
 		public static IEnumerable<ListadoEnviosDTO> ListadoEnvioToListadoEnvioDTO
 			(IEnumerable<Envio> envios)
 		{
@@ -66,7 +71,8 @@ namespace Compartido.Mappers
 				ClienteNombre = c.Cliente.Nombre,
 				Estado = c.Estado,
 				NroTracking = c.NroTracking,
-				FechaEntrega = c.FechaEntrega != null ? (DateTime)c.FechaEntrega : DateTime.MinValue
+				FechaEntrega = c.FechaEntrega != null ? (DateTime)c.FechaEntrega : DateTime.MinValue,
+				FechaEstimada = (DateTime)c.FechaEstimada
 
 
 			});

@@ -15,7 +15,7 @@ namespace Compartido.DTOs.Envios
 		public string FuncionarioNombre { get; set; }
 		public string ClienteNombre { get; set; }
 		public Estado Estado { get; set; }
-
 		public DateTime FechaEntrega { get; set; }
+		public DateTime? FechaEstimada { get; set; }
 	}
 }

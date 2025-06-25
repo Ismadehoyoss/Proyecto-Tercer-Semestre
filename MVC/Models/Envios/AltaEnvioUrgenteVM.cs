@@ -12,6 +12,7 @@ namespace MVC.Models.Envios
 		public string DireccionPostal { get; set; }
 		public bool Entregado { get; set; }
 		public int TiempoEntrega { get; set; }
+		public DateTime FechaEstimada { get; set; }
 
 		public IEnumerable<UsuarioViewModel> Usuarios { get; set; }
 			 = new List<UsuarioViewModel>();
