@@ -107,6 +107,18 @@ namespace LogicaAccesoDatos.Repositorios
 				.ToList();
 		}
 
+		public IEnumerable<Envio> FindByComentario(string comentario, int clienteId)
+		{
+			return Contexto.Envios
+				.Include(e => e.Seguimientos) 
+				.Include(e => e.Funcionario)
+				.Include(e => e.Cliente)
+				.Where(e => e.ClienteId == clienteId &&
+							e.Seguimientos.Any(s => s.Comentario.Contains(comentario)))
+				.OrderByDescending(e => e.FechaEntrega)
+				.ToList();
+		}
+
 
 	}
 }

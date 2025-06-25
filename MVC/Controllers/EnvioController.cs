@@ -135,6 +135,46 @@ namespace MVC.Controllers
 			}
 			return View(listadoEnviosVMs);
 		}
+		public ActionResult EnviosxComentario(string comentario)
+		{
+			List<ListadoEnviosVM> listadoEnviosVMs = new List<ListadoEnviosVM>();
+			if (string.IsNullOrEmpty(comentario))
+			{
+				ViewBag.Mensaje = "Debe ingresar un comentario para filtrar.";
+				return View(new List<ListadoEnviosVM>());
+			}
+			try
+			{
+				int clienteId = (int)HttpContext.Session.GetInt32("Id");
+				if (clienteId == 0)
+				{
+					ViewBag.Mensaje = "Cliente no identificado.";
+					return View(listadoEnviosVMs);
+				}
+				HttpClient client = new HttpClient();
+				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+				Task<HttpResponseMessage> tarea = client.GetAsync(urlBase + $"/envio/porComentario?comentario={comentario}&clienteId={clienteId}");
+				tarea.Wait();
+				HttpResponseMessage respuesta = tarea.Result;
+				HttpContent contenido = respuesta.Content;
+				Task<string> body = contenido.ReadAsStringAsync();
+				body.Wait();
+				string datos = body.Result;
+				if (respuesta.IsSuccessStatusCode)
+				{
+					listadoEnviosVMs = JsonConvert.DeserializeObject<List<ListadoEnviosVM>>(datos);
+				}
+				else
+				{
+					ViewBag.Mensaje = datos;
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Datos Incorrectos";
+			}
+			return View(listadoEnviosVMs);
+		}
 
 		public ActionResult Seguimientos(int envioId)
 		{

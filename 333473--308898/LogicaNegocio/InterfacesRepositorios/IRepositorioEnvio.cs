@@ -17,5 +17,7 @@ namespace LogicaNegocio.InterfacesRepositorios
 
 		IEnumerable<Envio>FindByFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId);
 
+		IEnumerable<Envio>FindByComentario(string comentario, int clienteId);
+
 	}
 }

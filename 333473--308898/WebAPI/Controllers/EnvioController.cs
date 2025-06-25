@@ -19,6 +19,8 @@ namespace WebAPI.Controllers
 		public IAltaEnvioUrgente CUaltaEnvioUrgente { get; set; }
 		public IListadoEnviosxFecha CUlistadoxFechas { get; set; }
 
+		public IListadoEnviosxComentario CUlistadoEnviosxComentarios { get; set; }
+
 		public IListadoEnviosClienteLogueado CUlistadoEnviosClienteLogueado { get; set; }
 		public EnvioController(
 		IListadoEnvios cUlistadoEnvios,
@@ -26,7 +28,8 @@ namespace WebAPI.Controllers
 		IAltaEnvioUrgente cUaltaEnvioUrgente,
 		IAltaEnvioComun cUaltaEnvioComun,
 		IListadoEnviosClienteLogueado cUlistadoEnviosClienteLogueado,
-		IListadoEnviosxFecha cUlistadoxFechas)
+		IListadoEnviosxFecha cUlistadoxFechas,
+		IListadoEnviosxComentario cUlistadoxComentarios)
 		{
 			CUlistadoEnvios = cUlistadoEnvios;
 			CUbuscarEnvios = cUbuscarEnvios;
@@ -34,6 +37,7 @@ namespace WebAPI.Controllers
 			CUaltaEnvioComun = cUaltaEnvioComun;
 			CUlistadoEnviosClienteLogueado = cUlistadoEnviosClienteLogueado;
 			CUlistadoxFechas = cUlistadoxFechas;
+			CUlistadoEnviosxComentarios = cUlistadoxComentarios;
 		}
 
 
@@ -105,6 +109,27 @@ namespace WebAPI.Controllers
 			catch (Exception ex)
 			{
 				return StatusCode(500, "Error interno");
+			}
+		}
+		[Authorize(Roles = "Cliente")]
+		[HttpGet("porComentario")]
+		public IActionResult GetEnviosPorComentario(string comentario, int clienteId)
+		{
+			try
+			{
+				if (string.IsNullOrWhiteSpace(comentario))
+					return BadRequest("Debe ingresar una palabra a buscar.");
+
+				var envios = CUlistadoEnviosxComentarios.Ejecutar(comentario, clienteId).ToList();
+
+				if (!envios.Any())
+					return NotFound("No se encontraron envíos con ese comentario.");
+
+				return Ok(envios);
+			}
+			catch (Exception)
+			{
+				return StatusCode(500, "Error interno.");
 			}
 		}
 

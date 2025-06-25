@@ -47,6 +47,7 @@ namespace WebAPI
 			builder.Services.AddScoped<IListadoEnviosClienteLogueado, ListadoEnviosClienteLogueado>();
 			builder.Services.AddScoped<IListadoSeguimientos, ListadoSeguimientosCU>();
 			builder.Services.AddScoped<IListadoEnviosxFecha, ListadoEnviosxFecha>();
+			builder.Services.AddScoped<IListadoEnviosxComentario, ListadoEnviosxComentario>();
 
 			string cadenaConexion = builder.Configuration.GetConnectionString("cadenaConexion");
 			builder.Services.AddDbContext<DemoContext>(option => option.UseSqlServer(cadenaConexion));
