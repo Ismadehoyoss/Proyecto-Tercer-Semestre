@@ -203,6 +203,13 @@ namespace MVC.Controllers
         
         public IActionResult CambioPassword()
 		{
+			string rol = HttpContext.Session.GetString("Rol");
+
+			if (rol != "Cliente")
+			{
+
+				return RedirectToAction("Index", "Envio");
+			}
 			return View();
 		}
         // Replacing the incorrect attribute usage
@@ -213,7 +220,14 @@ namespace MVC.Controllers
         {
             try
             {
-                if (ModelState.IsValid)
+				string rol = HttpContext.Session.GetString("Rol");
+
+				if (rol != "Cliente")
+				{
+
+					return RedirectToAction("Index", "Envio");
+				}
+				if (ModelState.IsValid)
                 {
                     passwordVM.Email = HttpContext.Session.GetString("Email");
                     HttpClient client = new HttpClient();

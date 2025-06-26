@@ -54,7 +54,8 @@ namespace Compartido.Mappers
 				ClienteNombre = envio.Cliente?.Nombre ?? "Sin cliente",
 				Estado = envio.Estado,
 				FechaEntrega = envio.FechaEntrega ?? DateTime.MinValue,
-				FechaEstimada = envio.FechaEstimada?? DateTime.MinValue
+				FechaEstimada = envio.FechaEstimada?? DateTime.MinValue,
+				Seguimientos = SeguimientosMapper(envio.Seguimientos)
 			};
 		}
 
@@ -72,11 +73,23 @@ namespace Compartido.Mappers
 				Estado = c.Estado,
 				NroTracking = c.NroTracking,
 				FechaEntrega = c.FechaEntrega != null ? (DateTime)c.FechaEntrega : DateTime.MinValue,
-				FechaEstimada = (DateTime)c.FechaEstimada
+				FechaEstimada = (DateTime)c.FechaEstimada,
 
 
 			});
 			return enviosDTOs;
+		}
+		private static List<SeguimientoDTO> SeguimientosMapper(IEnumerable<Seguimiento> seguimientos)
+		{
+			if (seguimientos == null)
+				return new List<SeguimientoDTO>();
+
+			return seguimientos.Select(s => new SeguimientoDTO
+			{
+				Comentario = s.Comentario,
+				FechaHora = s.FechaHora,
+				UsuarioId = s.UsuarioId,
+			}).ToList();
 		}
 
 		public static Seguimiento SeguimientoDTOtoSeguimiento(SeguimientoDTO seguimientoDTO, Usuario usuario)

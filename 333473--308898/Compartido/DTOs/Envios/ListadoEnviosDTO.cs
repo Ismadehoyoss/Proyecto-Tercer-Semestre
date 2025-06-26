@@ -1,4 +1,5 @@
-﻿using LogicaNegocio.EntidadesNegocio;
+﻿using Compartido.DTOs.Seguimiento;
+using LogicaNegocio.EntidadesNegocio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,5 +18,6 @@ namespace Compartido.DTOs.Envios
 		public Estado Estado { get; set; }
 		public DateTime FechaEntrega { get; set; }
 		public DateTime? FechaEstimada { get; set; }
+		public List<SeguimientoDTO> Seguimientos { get; set; }
 	}
 }

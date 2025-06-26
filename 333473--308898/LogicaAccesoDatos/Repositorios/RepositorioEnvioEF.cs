@@ -20,7 +20,7 @@ namespace LogicaAccesoDatos.Repositorios
 		}
 		public void Add(Envio item)
 		{
-			Envio envioEncontrado = FindByNroTracking(item.NroTracking);
+			Envio envioEncontrado = FindById(item.Id);
 			if (envioEncontrado == null)
 			{
 				Contexto.Envios.Add(item);
@@ -72,7 +72,7 @@ namespace LogicaAccesoDatos.Repositorios
 
 		public Envio FindByNroTracking(string NroTracking)
 		{
-			return Contexto.Envios.Where(e => e.NroTracking == NroTracking).Include(e => e.Cliente).Include(e => e.Funcionario).SingleOrDefault();
+			return Contexto.Envios.Where(e => e.NroTracking == NroTracking).Include(e => e.Cliente).Include(e => e.Funcionario).Include(e=> e.Seguimientos).SingleOrDefault();
 		}
 
 		public void FinalizarEnvio(string NroTracking)
@@ -95,12 +95,13 @@ namespace LogicaAccesoDatos.Repositorios
 			return Contexto.Envios.Where(e => e.ClienteId == clienteId).OrderByDescending(e => e.FechaEntrega).Include(e => e.Funcionario).Include(e => e.Cliente).ToList();
 		}
 
-		public IEnumerable<Envio> FindByFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId)
+		public IEnumerable<Envio> FindByFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado estado)
 		{
 			return Contexto.Envios
 				.Where(e => (e.FechaEstimada ?? DateTime.MaxValue) >= fechaInicio
 							&& (e.FechaEstimada ?? DateTime.MinValue) <= fechaFin
-							&& e.ClienteId == clienteId)
+							&& e.ClienteId == clienteId
+							&& (e.Estado == estado))
 				.OrderByDescending(e => e.NroTracking)
 				.Include(e => e.Funcionario)
 				.Include(e => e.Cliente)

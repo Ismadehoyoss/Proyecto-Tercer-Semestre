@@ -18,11 +18,11 @@ namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
 		{
 			RepoEnvio = repositorioEnvio;
 		}
-		public IEnumerable<ListadoEnviosDTO> Ejecutar(DateTime fechaInicio, DateTime fechaFin , int clienteId)
+		public IEnumerable<ListadoEnviosDTO> Ejecutar(DateTime fechaInicio, DateTime fechaFin , int clienteId, Estado estado)
 		{
 			
 			IEnumerable<ListadoEnviosDTO> listadoEnviosDTO = new List<ListadoEnviosDTO>();
-			IEnumerable<Envio> envios = RepoEnvio.FindByFechas(fechaInicio, fechaFin, clienteId);
+			IEnumerable<Envio> envios = RepoEnvio.FindByFechas(fechaInicio, fechaFin, clienteId, estado);
 			listadoEnviosDTO = EnvioMapper.ListadoEnvioToListadoEnvioDTO(envios);
 			return listadoEnviosDTO;
 		}

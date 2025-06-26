@@ -1,4 +1,5 @@
 ﻿using Compartido.DTOs.Envios;
+using LogicaNegocio.EntidadesNegocio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.EnvioCU
 {
 	public interface IListadoEnviosxFecha
 	{
-		IEnumerable<ListadoEnviosDTO> Ejecutar(DateTime fechaInicio, DateTime fechaFin, int clienteId);
+		IEnumerable<ListadoEnviosDTO> Ejecutar(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado estado);
 
 	}
 }

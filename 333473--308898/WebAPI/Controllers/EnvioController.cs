@@ -1,5 +1,6 @@
 ﻿using Compartido.DTOs.Envios;
 using LogicaAplicacion.InterfacesCasosUso.EnvioCU;
+using LogicaNegocio.EntidadesNegocio;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -88,7 +89,7 @@ namespace WebAPI.Controllers
 		}
 		[Authorize(Roles = "Cliente")]
 		[HttpGet("porFechas")]
-		public IActionResult GetEnviosPorFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId)
+		public IActionResult GetEnviosPorFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado estado)
 		{
 			try
 			{
@@ -99,7 +100,7 @@ namespace WebAPI.Controllers
 					return BadRequest("La fecha de inicio no puede ser mayor que la fecha de fin.");
 
 				// Ejecutar consulta filtrando por fechas y cliente
-				List<ListadoEnviosDTO> envios = CUlistadoxFechas.Ejecutar(fechaInicio, fechaFin, clienteId).ToList();
+				List<ListadoEnviosDTO> envios = CUlistadoxFechas.Ejecutar(fechaInicio, fechaFin, clienteId,estado).ToList();
 
 				if (envios == null || envios.Count == 0)
 					return NotFound("No se encontraron envíos en el rango de fechas para este cliente.");
@@ -120,7 +121,7 @@ namespace WebAPI.Controllers
 				if (string.IsNullOrWhiteSpace(comentario))
 					return BadRequest("Debe ingresar una palabra a buscar.");
 
-				var envios = CUlistadoEnviosxComentarios.Ejecutar(comentario, clienteId).ToList();
+				List<ListadoEnviosDTO> envios = CUlistadoEnviosxComentarios.Ejecutar(comentario, clienteId).ToList();
 
 				if (!envios.Any())
 					return NotFound("No se encontraron envíos con ese comentario.");
@@ -134,23 +135,25 @@ namespace WebAPI.Controllers
 		}
 
 		// GET api/<EnvioController>/5
-		[HttpGet("{NroTracking}")]
-		public IActionResult Get(string NroTracking)
+		[HttpGet("FindByNroTracking/{nroTracking}")]
+		public IActionResult Get(string nroTracking)
 		{
 			//FindById
 			try
 			{
-
-				if (NroTracking == null)
+				ListadoEnviosDTO envios = CUbuscarEnvios.Ejecutar(nroTracking);
+				if (envios == null)
 				{
-					return BadRequest("El NroTracking no puede ser Nulo");
+					return NotFound("No se encontraron envíos para este numero de Tracking.");
 				}
-				return Ok(CUbuscarEnvios.Ejecutar(NroTracking));
+				else
+				{
+					return Ok(envios);
+				}
 			}
 			catch (Exception ex)
 			{
-
-				return StatusCode(500, "Datos Incorrectos");
+				return StatusCode(500, "Error interno");
 			}
 		}
 

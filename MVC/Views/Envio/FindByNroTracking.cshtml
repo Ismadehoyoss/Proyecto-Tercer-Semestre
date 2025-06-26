@@ -1,19 +1,66 @@
-﻿
+﻿@model MVC.Models.Envios.ListadoEnviosVM
+
 @{
-	ViewData["Title"] = "FindByNroTracking";
+    ViewData["Title"] = "Buscar por Nro de Tracking";
 }
 
-<h1>FindByNroTracking</h1>
+<h1>Buscar Envío por Nro de Tracking</h1>
 
-<form method="post">
-	<div class="form-group">
-		<label for="nroTracking">Número de Tracking</label>
-		<input type="text" class="form-control" id="nroTracking" name="nroTracking" placeholder="Ingrese el número de tracking" required>
-	</div>
-	<button type="submit" class="btn btn-primary mt-3">Buscar</button>
-</form>	
-@if(Model != null)
+<form method="get" asp-action="FindByNroTracking" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="nroTracking" class="form-control" placeholder="Ingrese el número de tracking..." required />
+        <button class="btn btn-primary" type="submit">Buscar</button>
+    </div>
+</form>
+
+<p>
+    <a asp-action="MisEnvios" class="btn btn-secondary mb-3">Volver a Mis Envíos</a>
+</p>
+
+@if (!string.IsNullOrEmpty(ViewBag.Mensaje))
 {
-	<p>@Model.Id</p>
-	<p>@Model.NroTracking</p>
+    <div class="alert alert-warning">@ViewBag.Mensaje</div>
+}
+
+@if (Model != null)
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>Detalles del Envío</strong>
+        </div>
+        <div class="card-body">
+            <p><strong>Nro Tracking:</strong> @Model.NroTracking</p>
+            <p><strong>Peso:</strong> @Model.Peso</p>
+            <p><strong>Funcionario:</strong> @Model.FuncionarioNombre</p>
+            <p><strong>Cliente:</strong> @Model.ClienteNombre</p>
+            <p><strong>Fecha Entrega:</strong> @(Model.FechaEntrega == DateTime.MinValue ? "No entregado" : Model.FechaEntrega.ToString("dd/MM/yyyy"))</p>
+            <p><strong>Fecha Estimada:</strong> @(Model.FechaEstimada != DateTime.MinValue ? Model.FechaEstimada.ToString("dd/MM/yyyy") : "Sin fecha estimada")</p>
+        </div>
+    </div>
+
+    @if (Model.Seguimientos != null && Model.Seguimientos.Any())
+    {
+        <h4>Seguimientos</h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Comentario</th>
+                    <th>Fecha y Hora</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var seg in Model.Seguimientos)
+                {
+                    <tr>
+                        <td>@seg.Comentario</td>
+                        <td>@seg.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-info">Este envío no tiene seguimientos.</div>
+    }
 }

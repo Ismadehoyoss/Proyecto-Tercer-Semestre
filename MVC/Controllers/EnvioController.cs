@@ -94,7 +94,7 @@ namespace MVC.Controllers
 			}
 			return View(listadoEnviosVMs);
 		}
-		public ActionResult EnviosxFecha(DateTime fechaInicio, DateTime fechaFin)
+		public ActionResult EnviosxFecha(DateTime fechaInicio, DateTime fechaFin, Estado estado)
 		{
 
 			List<ListadoEnviosVM> listadoEnviosVMs = new List<ListadoEnviosVM>();
@@ -102,6 +102,13 @@ namespace MVC.Controllers
 			{
 				ViewBag.Mensaje = "Debe ingresar ambas fechas para filtrar.";
 				return View(new List<ListadoEnviosVM>());
+			}
+			string rol = HttpContext.Session.GetString("Rol");
+
+			if (rol != "Cliente")
+			{
+
+				return RedirectToAction("Index", "Envio");
 			}
 			try
 			{
@@ -142,6 +149,13 @@ namespace MVC.Controllers
 			{
 				ViewBag.Mensaje = "Debe ingresar un comentario para filtrar.";
 				return View(new List<ListadoEnviosVM>());
+			}
+			string rol = HttpContext.Session.GetString("Rol");
+
+			if (rol != "Cliente")
+			{
+
+				return RedirectToAction("Index", "Envio");
 			}
 			try
 			{
@@ -396,21 +410,16 @@ namespace MVC.Controllers
 			return View(seguimientoVM);
 		}
 
-		public ActionResult FindByNroTracking()
-		{
-			return View();
-		}
-
-		[HttpPost]
 		public ActionResult FindByNroTracking(string nroTracking)
 		{
 			ListadoEnviosVM envioEncontrado = new ListadoEnviosVM();
 			try
 			{
+
 				if (!string.IsNullOrEmpty(nroTracking))
 				{
 					HttpClient envio = new HttpClient();
-					Task<HttpResponseMessage> tarea = envio.GetAsync(urlBase+"/FindByNroTracking/" + nroTracking);
+					Task<HttpResponseMessage> tarea = envio.GetAsync(urlBase+"/envio/FindByNroTracking/" + nroTracking);
 					tarea.Wait();
 					HttpResponseMessage respuesta = tarea.Result;
 					HttpContent contenido = respuesta.Content;
