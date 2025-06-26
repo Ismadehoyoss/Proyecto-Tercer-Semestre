@@ -1,0 +1,1072 @@
+﻿***********************************
+Archivo: EnvioController.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Controllers\EnvioController.cs
+***********************************
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using MVC.Filtro;
+using MVC.Models.Agencias;
+using MVC.Models.Envios;
+using MVC.Models.Usuarios;
+using Newtonsoft.Json;
+using System.Diagnostics;
+
+namespace MVC.Controllers
+{
+	public class EnvioController : Controller
+	{
+		private string urlBase = "";
+
+		public EnvioController(IConfiguration configuration)
+		{
+			urlBase = configuration.GetValue<string>("UrlBase");
+		}
+
+
+		// GET: Envio
+		public ActionResult Index()
+		{
+			string rol = HttpContext.Session.GetString("Rol");
+			if (rol == "Cliente")
+			{
+				return RedirectToAction("MisEnvios", "Envio");
+			}
+			List<ListadoEnviosVM> listadoEnviosVMs = new List<ListadoEnviosVM>();
+			try
+			{
+				HttpClient client = new HttpClient();
+				Task<HttpResponseMessage> tarea = client.GetAsync(urlBase+ "/Envio");
+				tarea.Wait();
+				HttpResponseMessage respuesta = tarea.Result;
+				HttpContent contenido = respuesta.Content;
+				Task<string> body = contenido.ReadAsStringAsync();
+				body.Wait();
+				string datos = body.Result;
+				if (respuesta.IsSuccessStatusCode)
+				{
+					listadoEnviosVMs = JsonConvert.DeserializeObject<List<ListadoEnviosVM>>(datos);
+				}
+				else
+				{ 
+					ViewBag.Mensaje = datos;
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Datos incorrectos";
+			}
+
+			return View(listadoEnviosVMs);
+		}
+
+
+		public ActionResult MisEnvios()
+		{
+			string rol = HttpContext.Session.GetString("Rol");
+
+			if (rol != "Cliente")
+			{
+				
+				return RedirectToAction("Index", "Envio"); 
+			}
+			List<ListadoEnviosVM> listadoEnviosVMs = new List<ListadoEnviosVM>();
+			try
+			{
+				int usuarioId = (int)HttpContext.Session.GetInt32("Id");
+				HttpClient client = new HttpClient();
+				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+				Task<HttpResponseMessage> tarea = client.GetAsync(urlBase + "/Envio/cliente/" + usuarioId);
+				tarea.Wait();
+				HttpResponseMessage respuesta = tarea.Result;
+				HttpContent contenido = respuesta.Content;
+				Task<string> body = contenido.ReadAsStringAsync();
+				body.Wait();
+				string datos = body.Result;
+				if (respuesta.IsSuccessStatusCode)
+				{
+					listadoEnviosVMs = JsonConvert.DeserializeObject<List<ListadoEnviosVM>>(datos);
+				}
+				else
+				{
+					ViewBag.Mensaje = datos;
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Datos incorrectos";
+			}
+			return View(listadoEnviosVMs);
+		}
+		public ActionResult EnviosxFecha(DateTime fechaInicio, DateTime fechaFin, Estado? estado)
+		{
+
+			List<ListadoEnviosVM> listadoEnviosVMs = new List<ListadoEnviosVM>();
+			if (fechaInicio == DateTime.MinValue || fechaFin == DateTime.MinValue)
+			{
+				ViewBag.Mensaje = "Debe ingresar ambas fechas para filtrar.";
+				return View(new List<ListadoEnviosVM>());
+			}
+			string rol = HttpContext.Session.GetString("Rol");
+
+			if (rol != "Cliente")
+			{
+
+				return RedirectToAction("Index", "Envio");
+			}
+			try
+			{
+				int clienteId = (int)HttpContext.Session.GetInt32("Id");
+				if (clienteId == 0)
+				{
+					ViewBag.Mensaje = "Cliente no identificado.";
+					return View(listadoEnviosVMs);
+				}
+				HttpClient client = new HttpClient();
+				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+                Task<HttpResponseMessage> tarea = client.GetAsync(urlBase + $"/envio/porFechas?fechaInicio={fechaInicio:yyyy-MM-dd}&fechaFin={fechaFin:yyyy-MM-dd}&clienteId={clienteId}&estado={(estado != null ? ((int)estado).ToString() : "")}");
+                tarea.Wait();
+				HttpResponseMessage respuesta = tarea.Result;
+				HttpContent contenido = respuesta.Content;
+				Task<string> body = contenido.ReadAsStringAsync();
+				body.Wait();
+				string datos = body.Result;
+				if (respuesta.IsSuccessStatusCode)
+				{
+					listadoEnviosVMs = JsonConvert.DeserializeObject<List<ListadoEnviosVM>>(datos);
+				}
+				else
+				{
+					ViewBag.Mensaje = datos;
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Datos Incorrectos";
+			}
+			return View(listadoEnviosVMs);
+		}
+		public ActionResult EnviosxComentario(string comentario)
+		{
+			List<ListadoEnviosVM> listadoEnviosVMs = new List<ListadoEnviosVM>();
+			if (string.IsNullOrEmpty(comentario))
+			{
+				ViewBag.Mensaje = "Debe ingresar un comentario para filtrar.";
+				return View(new List<ListadoEnviosVM>());
+			}
+			string rol = HttpContext.Session.GetString("Rol");
+
+			if (rol != "Cliente")
+			{
+
+				return RedirectToAction("Index", "Envio");
+			}
+			try
+			{
+				int clienteId = (int)HttpContext.Session.GetInt32("Id");
+				if (clienteId == 0)
+				{
+					ViewBag.Mensaje = "Cliente no identificado.";
+					return View(listadoEnviosVMs);
+				}
+				HttpClient client = new HttpClient();
+				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+				Task<HttpResponseMessage> tarea = client.GetAsync(urlBase + $"/envio/porComentario?comentario={comentario}&clienteId={clienteId}");
+				tarea.Wait();
+				HttpResponseMessage respuesta = tarea.Result;
+				HttpContent contenido = respuesta.Content;
+				Task<string> body = contenido.ReadAsStringAsync();
+				body.Wait();
+				string datos = body.Result;
+				if (respuesta.IsSuccessStatusCode)
+				{
+					listadoEnviosVMs = JsonConvert.DeserializeObject<List<ListadoEnviosVM>>(datos);
+				}
+				else
+				{
+					ViewBag.Mensaje = datos;
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Datos Incorrectos";
+			}
+			return View(listadoEnviosVMs);
+		}
+
+		public ActionResult Seguimientos(int envioId)
+		{
+			List<ListadoSeguimientosVM> listadoSeguimientosVM = new List<ListadoSeguimientosVM>();
+			try
+			{
+				HttpClient client = new HttpClient();
+				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+				Task<HttpResponseMessage> tarea = client.GetAsync(urlBase + "/seguimiento/envio/" + envioId);
+				tarea.Wait();
+				HttpResponseMessage respuesta = tarea.Result;
+				HttpContent contenido = respuesta.Content;
+				Task<string> body = contenido.ReadAsStringAsync();
+				body.Wait();
+				string datos = body.Result;
+				if (respuesta.IsSuccessStatusCode)
+				{
+					listadoSeguimientosVM = JsonConvert.DeserializeObject<List<ListadoSeguimientosVM>>(datos);
+				}
+				else
+				{
+					ViewBag.Mensaje = datos;
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Datos Incorrectos";
+				
+			}
+			return View(listadoSeguimientosVM);
+		}
+
+		// GET: Envio/Details/5
+		public ActionResult Details(int id)
+		{
+			return View();
+		}
+
+		// GET: Envio/Create
+		public ActionResult CreateEnvioComun()
+		{
+			AltaEnvioComunVM model = new AltaEnvioComunVM
+			{
+				Usuarios = new List<UsuarioViewModel>(),
+				Cliente = new List<ClienteViewModel>()
+			};
+			return View(model);
+		}
+		public ActionResult CreateEnvioUrgente()
+		{
+			AltaEnvioUrgenteVM model = new AltaEnvioUrgenteVM
+			{
+				Usuarios = new List<UsuarioViewModel>(),  
+				Cliente = new List<ClienteViewModel>()    
+			};
+			return View(model);
+		}
+
+		// POST: Envio/Create
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public ActionResult CreateEnvioComun(AltaEnvioComunVM envioComun)
+		{
+			try
+			{
+				if (ModelState.IsValid)
+				{
+					HttpClient cliente = new HttpClient();
+					Task<HttpResponseMessage> tarea = cliente.PostAsJsonAsync(urlBase + "/envio/comun", envioComun);
+					tarea.Wait();
+					HttpResponseMessage respuesta = tarea.Result;
+					if (respuesta.IsSuccessStatusCode)
+					{
+						return RedirectToAction(nameof(Index));
+					}
+					else
+					{
+						HttpContent contenido = respuesta.Content;
+						Task<string> body = contenido.ReadAsStringAsync();
+						body.Wait();
+						ViewBag.Mensaje = body.Result;
+					}
+				}
+				else
+				{
+					ViewBag.Mensaje = "Datos incorrectos, por favor verifique los campos ingresados.";
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Error en los datos";
+			}
+			return View(envioComun);
+		}
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public ActionResult CreateEnvioUrgente(AltaEnvioUrgenteVM envioUrgente)
+		{
+			try
+			{
+				if (ModelState.IsValid)
+				{
+					HttpClient cliente = new HttpClient();
+					Task<HttpResponseMessage> tarea = cliente.PostAsJsonAsync(urlBase +"/envio/urgente", envioUrgente);
+					tarea.Wait();
+					HttpResponseMessage respuesta = tarea.Result;
+					if (respuesta.IsSuccessStatusCode)
+					{
+						return RedirectToAction(nameof(Index));
+					}
+					else
+					{
+						HttpContent contenido = respuesta.Content;
+						Task<string> body = contenido.ReadAsStringAsync();
+						body.Wait();
+						ViewBag.Mensaje = body.Result;
+					}
+				}
+				else
+				{
+					ViewBag.Mensaje = "Datos incorrectos, por favor verifique los campos ingresados.";
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Error en los datos";
+			}
+			return View(envioUrgente);
+		}
+
+		// GET: Envio/Edit/5
+		public ActionResult Edit(int id)
+		{
+			return View();
+		}
+
+		// POST: Envio/Edit/5
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public ActionResult Edit(int id, IFormCollection collection)
+		{
+			try
+			{
+				return RedirectToAction(nameof(Index));
+			}
+			catch
+			{
+				return View();
+			}
+		}
+
+		// GET: Envio/Delete/5
+		public ActionResult Delete(int id)
+		{
+			return View();
+		}
+
+		// POST: Envio/Delete/5
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public ActionResult Delete(int id, IFormCollection collection)
+		{
+			try
+			{
+				return RedirectToAction(nameof(Index));
+			}
+			catch
+			{
+				return View();
+			}
+		}	
+
+		[HttpPost]
+		public ActionResult CambiarEstadoFinalizado(string NroTracking)
+		{
+			Debug.WriteLine($"Valor recibido de NroTracking: '{NroTracking}'");
+			try
+			{
+		
+			}
+			catch (Exception ex)
+			{
+				ViewBag.DatosExcepcion = ex.StackTrace;
+				ViewBag.Mensaje = "Error en los datos";
+				return RedirectToAction(nameof(Index));
+			}
+			return RedirectToAction(nameof(Index));
+
+		}
+
+		public IActionResult AgregarSeguimiento(int envioId)
+		{
+			AgregarSeguimientoVM seguimientoVM = new AgregarSeguimientoVM();
+			try
+			{
+				seguimientoVM.EnvioId = envioId;
+				seguimientoVM.UsuarioId = (int)HttpContext.Session.GetInt32("usuarioId");
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Datos incorrectos";
+			}
+			return View(seguimientoVM);
+		}
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public IActionResult AgregarSeguimiento(AgregarSeguimientoVM seguimientoVM)
+		{
+			try
+			{
+
+			}
+			catch (Exception ex)
+			{
+				ViewBag.DatosExcepcion = ex.StackTrace;
+				ViewBag.Mensaje = "Error en los datos";
+			}
+			return View(seguimientoVM);
+		}
+
+		public ActionResult FindByNroTracking(string nroTracking)
+		{
+			ListadoEnviosVM envioEncontrado = new ListadoEnviosVM();
+			try
+			{
+
+				if (!string.IsNullOrEmpty(nroTracking))
+				{
+					HttpClient envio = new HttpClient();
+					Task<HttpResponseMessage> tarea = envio.GetAsync(urlBase+"/envio/FindByNroTracking/" + nroTracking);
+					tarea.Wait();
+					HttpResponseMessage respuesta = tarea.Result;
+					HttpContent contenido = respuesta.Content;
+					Task<string> body = contenido.ReadAsStringAsync();
+					body.Wait();
+					string datos = body.Result;
+					if (respuesta.IsSuccessStatusCode)
+					{
+						envioEncontrado = JsonConvert.DeserializeObject<ListadoEnviosVM>(datos);
+					}
+					else
+					{
+						ViewBag.Mensaje = datos;
+					}
+				}
+				else
+				{
+					ViewBag.Mensaje = "El número de tracking no puede estar vacío.";
+				}
+			}
+			catch (Exception ex)
+			{
+
+				ViewBag.Mensaje = "Error";
+			}
+			return View(envioEncontrado);
+		}
+
+	}
+}
+
+***********************************
+Archivo: HomeController.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Controllers\HomeController.cs
+***********************************
+using Microsoft.AspNetCore.Mvc;
+using MVC.Models;
+using System.Diagnostics;
+
+namespace MVC.Controllers
+{
+	public class HomeController : Controller
+	{
+		private readonly ILogger<HomeController> _logger;
+
+		public HomeController(ILogger<HomeController> logger)
+		{
+			_logger = logger;
+		}
+
+		public IActionResult Index()
+		{
+			return View();
+		}
+
+		public IActionResult Privacy()
+		{
+			return View();
+		}
+
+		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+		public IActionResult Error()
+		{
+			return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+		}
+	}
+}
+
+***********************************
+Archivo: UsuarioController.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Controllers\UsuarioController.cs
+***********************************
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using MVC.Filtro;
+using MVC.Models.Usuarios;
+using Newtonsoft.Json;
+
+
+namespace MVC.Controllers
+{
+	//[Admin]
+	public class UsuarioController : Controller
+	{
+		private string urlBase = "";
+		public UsuarioController(IConfiguration configuration)
+		{
+			urlBase = configuration.GetValue<string>("UrlBase") + "/Usuario";
+		}
+		// GET: UsuarioController
+
+		public ActionResult Index()
+		{
+
+		
+			List<ListadoUsuariosViewModel> listadoUsuarioViewModel =
+				new List<ListadoUsuariosViewModel>();
+			try
+			{
+
+				
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Datos incorrectos";
+			}
+
+			return View(listadoUsuarioViewModel);
+		}
+
+		// GET: UsuarioController/Details/5
+
+		public ActionResult Details(int id)
+		{
+			return View();
+		}
+
+		// GET: UsuarioController/Create
+
+		[Admin]
+		public ActionResult Create()
+		{
+			return View();
+		}
+
+		// POST: UsuarioController/Create
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public ActionResult Create(UsuarioViewModel usuarioVM)
+		{
+			try
+			{
+				if (ModelState.IsValid) 
+				{
+				
+				}
+				
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Error en los datos";
+			}
+			return View();
+		}
+
+		// GET: UsuarioController/Edit/5
+
+		public ActionResult Edit(int id)
+		{
+			ListadoUsuariosViewModel usuarioVM = null;
+			try
+			{
+			}
+			catch (Exception ex)
+			{
+
+				ViewBag.Mensaje = ex.Message;
+			}
+
+			return View(usuarioVM);		
+		}
+		// POST: UsuarioController/Edit/5
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public ActionResult Edit(int id, ListadoUsuariosViewModel usuarioVM)
+		{
+            try
+            {
+                
+                
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Mensaje = "Error en los datos";
+            }
+            return View();
+        }
+
+		// GET: UsuarioController/Delete/5
+
+		public ActionResult Delete(int id)
+		{
+            ListadoUsuariosViewModel usuarioVM = null;
+            try
+            { 
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Mensaje = ex.Message;
+            }
+
+            return View(usuarioVM);
+        }
+
+		// POST: UsuarioController/Delete/5
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public ActionResult Delete(int id, ListadoUsuariosViewModel usuarioVM)
+		{
+            try
+            {
+               
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Mensaje = "Error en los datos";
+            }
+            return View();
+        }
+		public IActionResult Login()
+		{
+			return View();
+		}
+		
+		// POST: Usuario/Login
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public IActionResult Login(LoginViewModel usuarioLoginVM)
+		{
+			try
+			{
+				if (ModelState.IsValid)
+				{
+					HttpClient client = new HttpClient();
+					Task<HttpResponseMessage> tarea = client.PostAsJsonAsync(urlBase, usuarioLoginVM);
+					tarea.Wait();
+					HttpResponseMessage respuesta = tarea.Result;
+					HttpContent contenido = respuesta.Content;
+					Task<string> body = contenido.ReadAsStringAsync();
+					body.Wait();
+					string datos = body.Result;
+					if (respuesta.IsSuccessStatusCode)
+					{
+						UsuarioLogueadoVM usuario = JsonConvert.DeserializeObject<UsuarioLogueadoVM>(datos);
+						HttpContext.Session.SetString("Token", usuario.Token);
+						HttpContext.Session.SetString("Rol", usuario.Rol.ToString());
+						HttpContext.Session.SetString("Email", usuario.Email);
+						HttpContext.Session.SetInt32("Id", usuario.Id);
+						if (usuario.Rol.ToString() == "Administrador" || usuario.Rol.ToString() == "Funcionario")
+						{
+							return RedirectToAction("Index", "Envio");
+						}
+						else if (usuario.Rol.ToString() == "Cliente")
+						{
+							return RedirectToAction("MisEnvios", "Envio");
+						}
+							
+
+					}
+					else
+					{
+						ViewBag.Mensaje = datos;
+					}
+				}
+				else
+				{
+					ViewBag.Mensaje = "Datos incorrectos";
+				}
+			}
+			catch (Exception ex)
+			{
+				ViewBag.Mensaje = "Error en los datos";
+			}
+			return View();
+		}
+
+		public IActionResult Logout()
+		{
+			HttpContext.Session.Clear();
+			return RedirectToAction("Login" , "Usuario");
+		}
+        
+        public IActionResult CambioPassword()
+		{
+			string rol = HttpContext.Session.GetString("Rol");
+
+			if (rol != "Cliente")
+			{
+
+				return RedirectToAction("Index", "Envio");
+			}
+			return View();
+		}
+        // Replacing the incorrect attribute usage
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CambioPassword(CambioPasswordVM passwordVM)
+        {
+            try
+            {
+				string rol = HttpContext.Session.GetString("Rol");
+
+				if (rol != "Cliente")
+				{
+
+					return RedirectToAction("Index", "Envio");
+				}
+				if (ModelState.IsValid)
+                {
+                    passwordVM.Email = HttpContext.Session.GetString("Email");
+                    HttpClient client = new HttpClient();
+					client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
+                    Task <HttpResponseMessage> tarea = client.PutAsJsonAsync(urlBase, passwordVM);
+                    tarea.Wait();
+                    HttpResponseMessage respuesta = tarea.Result;
+                    HttpContent contenido = respuesta.Content;
+                    Task<string> body = contenido.ReadAsStringAsync();
+                    body.Wait();
+                    string datos = body.Result;
+                    if (respuesta.IsSuccessStatusCode)
+                    {
+                        ViewBag.Mensaje = datos;
+                        return RedirectToAction("Index", "Envio");
+                    }
+                    else
+                    {
+                        ViewBag.Mensaje = datos;
+                    }
+                }
+                else
+                {
+                    ViewBag.Mensaje = "Datos Incorrectos";
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Mensaje = "Error en los Datos";
+            }
+            return View();
+        }
+
+
+	}
+}
+
+***********************************
+Archivo: Admin.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Filtro\Admin.cs
+***********************************
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc;
+
+
+public class Admin : Attribute, IAuthorizationFilter
+{
+	public void OnAuthorization(AuthorizationFilterContext context)
+	{
+		string rol = context.HttpContext.Session.GetString("rol");		
+	}
+}
+***********************************
+Archivo: Logueado.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Filtro\Logueado.cs
+***********************************
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MVC.Filtro
+{
+	public class Logueado : Attribute, IAuthorizationFilter
+	{
+		public void OnAuthorization(AuthorizationFilterContext context)
+		{
+			if (context.HttpContext.Session.GetString("email") == null)
+			{
+				context.Result = new RedirectResult("/Home/index");
+			}
+
+
+
+
+		}
+	}
+}
+
+
+
+
+***********************************
+Archivo: ErrorViewModel.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\ErrorViewModel.cs
+***********************************
+namespace MVC.Models
+{
+	public class ErrorViewModel
+	{
+		public string? RequestId { get; set; }
+
+		public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+	}
+}
+
+***********************************
+Archivo: AgenciaViewModel.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Agencias\AgenciaViewModel.cs
+***********************************
+
+
+namespace MVC.Models.Agencias
+{
+	public class AgenciaViewModel
+	{
+		public int Id { get; set; }
+		public string Nombre { get; set; }
+		public string DireccionPostal { get; set; }
+		public int UbicacionId { get; set; }
+	}
+}
+
+***********************************
+Archivo: AgregarSeguimientoVM.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Envios\AgregarSeguimientoVM.cs
+***********************************
+namespace MVC.Models.Envios
+{
+	public class AgregarSeguimientoVM
+	{
+		public string Comentario { get; set; }
+		public DateTime FechaHora { get; set; }
+		public int EnvioId { get; set; }
+		public int UsuarioId { get; set; }
+	}
+}
+
+***********************************
+Archivo: AltaEnvioComunVM.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Envios\AltaEnvioComunVM.cs
+***********************************
+
+using MVC.Models.Usuarios;
+using MVC.Models.Agencias;
+
+namespace MVC.Models.Envios
+{
+	public class AltaEnvioComunVM
+	{
+		public string NumeroTracking { get; set; }
+		public int Peso { get; set; }
+		public int FuncionarioId { get; set; }
+		public int ClienteId { get; set; }
+		public int AgenciaId { get; set; }
+		public DateTime FechaEstimada { get; set; }
+
+		public IEnumerable<UsuarioViewModel> Usuarios { get; set; }
+			= new List<UsuarioViewModel>();
+
+			public IEnumerable<ClienteViewModel> Cliente { get; set; } 
+			= new List<ClienteViewModel>();
+		public IEnumerable<AgenciaViewModel> Agencia { get; set; }
+			= new List<AgenciaViewModel>();
+	}
+}
+
+***********************************
+Archivo: AltaEnvioUrgenteVM.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Envios\AltaEnvioUrgenteVM.cs
+***********************************
+
+using MVC.Models.Usuarios;
+
+namespace MVC.Models.Envios
+{
+	public class AltaEnvioUrgenteVM
+	{
+		public string NumeroTracking { get; set; }
+		public int Peso { get; set; }
+		public int FuncionarioId { get; set; }
+		public int ClienteId { get; set; }
+		public string DireccionPostal { get; set; }
+		public bool Entregado { get; set; }
+		public int TiempoEntrega { get; set; }
+		public DateTime FechaEstimada { get; set; }
+
+		public IEnumerable<UsuarioViewModel> Usuarios { get; set; }
+			 = new List<UsuarioViewModel>();
+
+		public IEnumerable<ClienteViewModel> Cliente { get; set; }
+		= new List<ClienteViewModel>();
+	}
+}
+
+***********************************
+Archivo: ListadoEnviosVM.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Envios\ListadoEnviosVM.cs
+***********************************
+
+
+namespace MVC.Models.Envios
+{
+	public class ListadoEnviosVM
+	{
+		public int Id { get; set; }
+		public int Peso { get; set; }
+		public string NroTracking { get; set; }
+		public string FuncionarioNombre { get; set; }
+		public string ClienteNombre { get; set; }
+		public Estado Estado { get; set; }
+		public DateTime FechaEstimada { get; set; }
+		public DateTime FechaEntrega { get; set; }
+		public List<ListadoSeguimientosVM> Seguimientos { get; set; }
+
+		
+	}
+	public enum Estado
+	{
+		En_Proceso,
+		Finalizado
+	}
+}
+
+***********************************
+Archivo: ListadoSeguimientosVM.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Envios\ListadoSeguimientosVM.cs
+***********************************
+namespace MVC.Models.Envios
+{
+	public class ListadoSeguimientosVM
+	{
+		public int UsuarioId { get; set; }
+		public DateTime FechaHora { get; set; }
+		public string Comentario { get; set; }
+	}
+}
+
+***********************************
+Archivo: CambioPasswordVM.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Usuarios\CambioPasswordVM.cs
+***********************************
+namespace MVC.Models.Usuarios
+{
+    public class CambioPasswordVM
+    {
+        public string? Email { get; set; }
+        public string PasswordActual { get; set; }
+        public string PasswordNueva { get; set; }
+    }
+}
+
+***********************************
+Archivo: ClienteViewModel.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Usuarios\ClienteViewModel.cs
+***********************************
+namespace MVC.Models.Usuarios
+{
+	public class ClienteViewModel
+	{
+		public int Id { get; set; }
+		public string Ci { get; set; }
+		public string Nombre { get; set; }
+		public string Apellido { get; set; }
+		public string Email { get; set; }
+		public string Contraseña { get; set; }
+		public Rol Rol { get; set; }
+	}
+}
+
+***********************************
+Archivo: ListadoUsuariosViewModel.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Usuarios\ListadoUsuariosViewModel.cs
+***********************************
+namespace MVC.Models.Usuarios
+{
+	public class ListadoUsuariosViewModel
+	{
+		public int Id { get; set; }
+		public string Ci { get; set; }
+		public string Nombre { get; set; }
+		public string Apellido { get; set; }
+		public string Email { get; set; }
+		public string Contraseña { get; set; }
+
+		public Rol Rol;
+	}
+
+	public enum Rol
+	{
+		Administrador,
+		Funcionario,
+		Cliente,
+	}
+}
+
+***********************************
+Archivo: LoginViewModel.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Usuarios\LoginViewModel.cs
+***********************************
+namespace MVC.Models.Usuarios
+{
+	public class LoginViewModel
+	{
+		public string Email { get; set; }
+		public string Password { get; set; }
+	}
+}
+
+***********************************
+Archivo: PasswordCambiadaVM.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Usuarios\PasswordCambiadaVM.cs
+***********************************
+namespace MVC.Models.Usuarios
+{
+    public class PasswordCambiadaVM
+    {
+        public string PasswordNueva { get; set; }
+    }
+}
+
+***********************************
+Archivo: UsuarioLogueadoVM.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Usuarios\UsuarioLogueadoVM.cs
+***********************************
+namespace MVC.Models.Usuarios
+{
+	public class UsuarioLogueadoVM
+	{
+		public string Token { get; set; }
+
+		public string Email { get; set; }
+
+		public Rol Rol { get; set; }
+
+		public int Id { get; set; }
+	}
+}
+
+***********************************
+Archivo: UsuarioViewModel.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\MVC\Models\Usuarios\UsuarioViewModel.cs
+***********************************
+namespace MVC.Models.Usuarios
+{
+	public class UsuarioViewModel
+	{
+		public int Id { get; set; }
+		public string Ci {  get; set; }
+		public string Nombre { get; set; }
+		public string Apellido { get; set; }
+		public string Email { get; set; }
+		public string Contraseña { get; set; }
+		public Rol Rol { get; set; }
+	}
+}

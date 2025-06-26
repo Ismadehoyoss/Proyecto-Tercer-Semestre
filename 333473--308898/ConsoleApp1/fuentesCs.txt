@@ -1,6 +1,6 @@
 ﻿***********************************
 Archivo: DemoContext.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\DemoContext.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\DemoContext.cs
 ***********************************
 using LogicaNegocio.EntidadesNegocio;
 using Microsoft.EntityFrameworkCore;
@@ -52,7 +52,7 @@ namespace LogicaAccesoDatos
 
 ***********************************
 Archivo: ImpresionCodigoFuenteSolucion.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImpresionCodigoFuenteSolucion.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImpresionCodigoFuenteSolucion.cs
 ***********************************
 using System.Text;
 using System.IO;
@@ -157,7 +157,7 @@ namespace ImprimirCodigoFuente
 
 ***********************************
 Archivo: WeatherForecast.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\WebAPI\WeatherForecast.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\WebAPI\WeatherForecast.cs
 ***********************************
 namespace WebAPI
 {
@@ -175,7 +175,7 @@ namespace WebAPI
 
 ***********************************
 Archivo: AgenciaMapper.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\Compartido\Mappers\AgenciaMapper.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\Mappers\AgenciaMapper.cs
 ***********************************
 using Compartido.DTOs.Agencia;
 using LogicaNegocio.EntidadesNegocio;
@@ -206,7 +206,7 @@ namespace Compartido.Mappers
 
 ***********************************
 Archivo: EnvioMapper.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\Compartido\Mappers\EnvioMapper.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\Mappers\EnvioMapper.cs
 ***********************************
 using Compartido.DTOs.Envios;
 using Compartido.DTOs.Seguimiento;
@@ -230,7 +230,8 @@ namespace Compartido.Mappers
 					comunDTO.Peso,
 					Estado.En_Proceso,
 					new List<Seguimiento>(),
-					agencia);
+					agencia,
+					comunDTO.FechaEstimada);
 
 
 
@@ -246,12 +247,14 @@ namespace Compartido.Mappers
 				new List<Seguimiento>(),
 				urgenteDTO.DireccionPostal,
 				urgenteDTO.Entregado,
-				urgenteDTO.TiempoEntrega);
+				urgenteDTO.TiempoEntrega,
+				urgenteDTO.FechaEstimada);
 
 		}
-		public static ListadoEnviosDTO EnvioToListadoDTO
-			(Envio envio)
+		public static ListadoEnviosDTO EnvioToListadoDTO(Envio envio)
 		{
+			if (envio == null)
+				return null;
 			return new ListadoEnviosDTO()
 			{
 				Id = envio.Id,
@@ -260,10 +263,13 @@ namespace Compartido.Mappers
 				FuncionarioNombre = envio.Funcionario?.Nombre ?? "Sin funcionario",
 				ClienteNombre = envio.Cliente?.Nombre ?? "Sin cliente",
 				Estado = envio.Estado,
-				FechaEntrega = envio.FechaEntrega ?? DateTime.MinValue
+				FechaEntrega = envio.FechaEntrega ?? DateTime.MinValue,
+				FechaEstimada = envio.FechaEstimada?? DateTime.MinValue,
+				Seguimientos = SeguimientosMapper(envio.Seguimientos)
 			};
-
 		}
+
+		
 		public static IEnumerable<ListadoEnviosDTO> ListadoEnvioToListadoEnvioDTO
 			(IEnumerable<Envio> envios)
 		{
@@ -275,11 +281,25 @@ namespace Compartido.Mappers
 				FuncionarioNombre = c.Funcionario.Nombre,
 				ClienteNombre = c.Cliente.Nombre,
 				Estado = c.Estado,
-				FechaEntrega = c.FechaEntrega != null ? (DateTime)c.FechaEntrega : DateTime.MinValue
+				NroTracking = c.NroTracking,
+				FechaEntrega = c.FechaEntrega != null ? (DateTime)c.FechaEntrega : DateTime.MinValue,
+				FechaEstimada = (DateTime)c.FechaEstimada,
 
 
 			});
 			return enviosDTOs;
+		}
+		private static List<SeguimientoDTO> SeguimientosMapper(IEnumerable<Seguimiento> seguimientos)
+		{
+			if (seguimientos == null)
+				return new List<SeguimientoDTO>();
+
+			return seguimientos.Select(s => new SeguimientoDTO
+			{
+				Comentario = s.Comentario,
+				FechaHora = s.FechaHora,
+				UsuarioId = s.UsuarioId,
+			}).ToList();
 		}
 
 		public static Seguimiento SeguimientoDTOtoSeguimiento(SeguimientoDTO seguimientoDTO, Usuario usuario)
@@ -298,8 +318,43 @@ namespace Compartido.Mappers
 }
 
 ***********************************
+Archivo: SeguimientoMapper.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\Mappers\SeguimientoMapper.cs
+***********************************
+using Compartido.DTOs.Envios;
+using Compartido.DTOs.Seguimiento;
+using LogicaNegocio.EntidadesNegocio;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Compartido.Mappers
+{
+	public class SeguimientoMapper
+	{
+		public static IEnumerable<SeguimientoDTO> ListadoSeguimientoToListadoSeguimientoDTO
+			(IEnumerable<Seguimiento> seguimientos)
+		{
+			IEnumerable<SeguimientoDTO> seguimientoDTOs = new List<SeguimientoDTO>();
+			seguimientoDTOs = seguimientos.Select(c => new SeguimientoDTO()
+			{
+				EnvioId = c.EnvioId,
+				Comentario = c.Comentario,
+				FechaHora = c.FechaHora,
+				UsuarioId = c.UsuarioId
+
+
+			});
+			return seguimientoDTOs;
+		}
+	}
+}
+
+***********************************
 Archivo: UsuarioMapper.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\Compartido\Mappers\UsuarioMapper.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\Mappers\UsuarioMapper.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -314,21 +369,21 @@ namespace Compartido.Mappers
 {
 	public class UsuarioMapper
 	{
-		public static Usuario UsuarioFromUsuarioDTO(UsuarioDTO usuarioDTO)
-		{
-			if(usuarioDTO == null)
-			{
-				throw new ArgumentNullException("Datos Incorrectos");
-			}
+		//public static Usuario UsuarioFromUsuarioDTO(UsuarioDTO usuarioDTO)
+		//{
+		//	if(usuarioDTO == null)
+		//	{
+		//		throw new ArgumentNullException("Datos Incorrectos");
+		//	}
 		
-			return new Usuario(usuarioDTO.Ci,
-					  usuarioDTO.Nombre,
-					  usuarioDTO.Apellido,
-					  usuarioDTO.Email,
-					  usuarioDTO.Contraseña,
-					  (LogicaNegocio.EntidadesNegocio.Rol)usuarioDTO.Rol)
-				;
-		}
+		//	return new Usuario(usuarioDTO.Ci,
+		//			  usuarioDTO.Nombre,
+		//			  usuarioDTO.Apellido,
+		//			  usuarioDTO.Email,
+		//			  usuarioDTO.Contraseña,
+		//			  usuarioDTO.Rol)
+		//		;
+		//}
 
 		public static IEnumerable<ListadoUsuariosDTO> ListadoUsuarioToListadoUsuarioDTO
 			(IEnumerable<Usuario> usuarios)
@@ -342,7 +397,7 @@ namespace Compartido.Mappers
 				Apellido = c.Apellido,
 				Email = c.Email,
 				Contraseña = c.Contraseña,
-				rol = (DTOs.Usuario.Rol)c.Rol
+				rol = c.Rol
             }).ToList();
 		}
 		public static ListadoUsuariosDTO UsuarioToListadoUsuarioDTO
@@ -356,7 +411,7 @@ namespace Compartido.Mappers
 				Apellido = usuario.Apellido,
 				Email = usuario.Email,
 				Contraseña = usuario.Contraseña,
-				rol = (DTOs.Usuario.Rol)usuario.Rol
+				rol = usuario.Rol
             };
 		}
 
@@ -372,35 +427,62 @@ namespace Compartido.Mappers
 				usuarioDTO.Apellido,
 				usuarioDTO.Email,
 				usuarioDTO.Contraseña,
-				(LogicaNegocio.EntidadesNegocio.Rol)usuarioDTO.rol);
+				usuarioDTO.rol);
 
 
         }
 
-		public static UsuarioDTO UsuarioToUsuarioDTO(Usuario usuario)
+		//public static UsuarioDTO UsuarioToUsuarioDTO(Usuario usuario)
+		//{
+		//	if (usuario == null)
+		//	{
+		//		throw new ArgumentNullException("El usuario no puede ser nulo");
+		//	}
+
+		//	return new UsuarioDTO
+		//	{
+		//		Id = usuario.Id, 
+		//		Ci = usuario.Ci.Valor, 
+		//		Nombre = usuario.Nombre, 
+		//		Apellido = usuario.Apellido, 
+		//		Email = usuario.Email, 
+		//		Contraseña = usuario.Contraseña, 
+		//		Rol = usuario.Rol  
+		//	};
+		//}
+
+		public static UsuarioLogueadoDTO UsuarioToUsuarioLogueadoDTO(Usuario usuario)
 		{
 			if (usuario == null)
 			{
 				throw new ArgumentNullException("El usuario no puede ser nulo");
 			}
-
-			return new UsuarioDTO
+			return new UsuarioLogueadoDTO
 			{
-				Id = usuario.Id, 
-				Ci = usuario.Ci.Valor, 
-				Nombre = usuario.Nombre, 
-				Apellido = usuario.Apellido, 
-				Email = usuario.Email, 
-				Contraseña = usuario.Contraseña, 
-				Rol = (DTOs.Usuario.Rol)usuario.Rol  
+				Rol = usuario.Rol.ToString(),
+				Email = usuario.Email,
+				Id = usuario.Id
+			};
+		}
+
+		public static CambioPasswordDTO UsuarioToCambioPasswordDTO(Usuario usuario)
+		{
+			if(usuario == null)
+			{
+				throw new ArgumentNullException("El usuario no puede ser nulo");
+			}
+			return new CambioPasswordDTO
+			{
+				Email = usuario.Email,
+				PasswordActual = usuario.Contraseña
 			};
 		}
 	}
 }
 
 ***********************************
-Archivo: 20250516205817_init.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Migrations\20250516205817_init.cs
+Archivo: 20250626124235_Initial.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Migrations\20250626124235_Initial.cs
 ***********************************
 using System;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -410,7 +492,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LogicaAccesoDatos.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -474,11 +556,12 @@ namespace LogicaAccesoDatos.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    NumeroTracking = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NroTracking = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FuncionarioId = table.Column<int>(type: "int", nullable: false),
                     ClienteId = table.Column<int>(type: "int", nullable: false),
                     Peso = table.Column<int>(type: "int", nullable: false),
                     Estado = table.Column<int>(type: "int", nullable: false),
+                    FechaEstimada = table.Column<DateTime>(type: "datetime2", nullable: true),
                     FechaEntrega = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Discriminator = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
                     AgenciaId = table.Column<int>(type: "int", nullable: true),
@@ -588,8 +671,8 @@ namespace LogicaAccesoDatos.Migrations
 }
 
 ***********************************
-Archivo: 20250516205817_init.Designer.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Migrations\20250516205817_init.Designer.cs
+Archivo: 20250626124235_Initial.Designer.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Migrations\20250626124235_Initial.Designer.cs
 ***********************************
 // <auto-generated />
 using System;
@@ -606,8 +689,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LogicaAccesoDatos.Migrations
 {
     [DbContext(typeof(DemoContext))]
-    [Migration("20250516205817_init")]
-    partial class init
+    [Migration("20250626124235_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -667,328 +750,7 @@ namespace LogicaAccesoDatos.Migrations
                     b.Property<DateTime?>("FechaEntrega")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("FuncionarioId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("NumeroTracking")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Peso")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClienteId");
-
-                    b.HasIndex("FuncionarioId");
-
-                    b.ToTable("Envios");
-
-                    b.HasDiscriminator().HasValue("Envio");
-
-                    b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Seguimiento", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Comentario")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("EnvioId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("FechaHora")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EnvioId");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.ToTable("Seguimientos");
-                });
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Ubicacion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double>("Latitud")
-                        .HasColumnType("float");
-
-                    b.Property<double>("Longitud")
-                        .HasColumnType("float");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Ubicacion");
-                });
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Usuario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Apellido")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Contraseña")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Rol")
-                        .HasColumnType("int");
-
-                    b.ComplexProperty<Dictionary<string, object>>("Ci", "LogicaNegocio.EntidadesNegocio.Usuario.Ci#CedulaUsuario", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<string>("Valor")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-                        });
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Usuarios");
-                });
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Comun", b =>
-                {
-                    b.HasBaseType("LogicaNegocio.EntidadesNegocio.Envio");
-
-                    b.Property<int>("AgenciaId")
-                        .HasColumnType("int");
-
-                    b.HasIndex("AgenciaId");
-
-                    b.HasDiscriminator().HasValue("Comun");
-                });
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Urgente", b =>
-                {
-                    b.HasBaseType("LogicaNegocio.EntidadesNegocio.Envio");
-
-                    b.Property<string>("DireccionPostal")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Entregado")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("TiempoEntrega")
-                        .HasColumnType("int");
-
-                    b.HasDiscriminator().HasValue("Urgente");
-                });
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Agencia", b =>
-                {
-                    b.HasOne("LogicaNegocio.EntidadesNegocio.Ubicacion", "Ubicacion")
-                        .WithMany()
-                        .HasForeignKey("UbicacionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ubicacion");
-                });
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Envio", b =>
-                {
-                    b.HasOne("LogicaNegocio.EntidadesNegocio.Usuario", "Cliente")
-                        .WithMany()
-                        .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("LogicaNegocio.EntidadesNegocio.Usuario", "Funcionario")
-                        .WithMany()
-                        .HasForeignKey("FuncionarioId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Cliente");
-
-                    b.Navigation("Funcionario");
-                });
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Seguimiento", b =>
-                {
-                    b.HasOne("LogicaNegocio.EntidadesNegocio.Envio", "Envio")
-                        .WithMany("Seguimientos")
-                        .HasForeignKey("EnvioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LogicaNegocio.EntidadesNegocio.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Envio");
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Comun", b =>
-                {
-                    b.HasOne("LogicaNegocio.EntidadesNegocio.Agencia", "Agencia")
-                        .WithMany()
-                        .HasForeignKey("AgenciaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Agencia");
-                });
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Envio", b =>
-                {
-                    b.Navigation("Seguimientos");
-                });
-#pragma warning restore 612, 618
-        }
-    }
-}
-
-***********************************
-Archivo: 20250517181012_init2.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Migrations\20250517181012_init2.cs
-***********************************
-using Microsoft.EntityFrameworkCore.Migrations;
-
-#nullable disable
-
-namespace LogicaAccesoDatos.Migrations
-{
-    /// <inheritdoc />
-    public partial class init2 : Migration
-    {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.RenameColumn(
-                name: "NumeroTracking",
-                table: "Envios",
-                newName: "NroTracking");
-        }
-
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.RenameColumn(
-                name: "NroTracking",
-                table: "Envios",
-                newName: "NumeroTracking");
-        }
-    }
-}
-
-***********************************
-Archivo: 20250517181012_init2.Designer.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Migrations\20250517181012_init2.Designer.cs
-***********************************
-// <auto-generated />
-using System;
-using System.Collections.Generic;
-using LogicaAccesoDatos;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
-#nullable disable
-
-namespace LogicaAccesoDatos.Migrations
-{
-    [DbContext(typeof(DemoContext))]
-    [Migration("20250517181012_init2")]
-    partial class init2
-    {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
-        {
-#pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.10")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
-
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Agencia", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("DireccionPostal")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UbicacionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UbicacionId");
-
-                    b.ToTable("Agencias");
-                });
-
-            modelBuilder.Entity("LogicaNegocio.EntidadesNegocio.Envio", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClienteId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
-                    b.Property<int>("Estado")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("FechaEntrega")
+                    b.Property<DateTime?>("FechaEstimada")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("FuncionarioId")
@@ -1204,7 +966,7 @@ namespace LogicaAccesoDatos.Migrations
 
 ***********************************
 Archivo: DemoContextModelSnapshot.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Migrations\DemoContextModelSnapshot.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Migrations\DemoContextModelSnapshot.cs
 ***********************************
 // <auto-generated />
 using System;
@@ -1277,6 +1039,9 @@ namespace LogicaAccesoDatos.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("FechaEntrega")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaEstimada")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("FuncionarioId")
@@ -1492,7 +1257,7 @@ namespace LogicaAccesoDatos.Migrations
 
 ***********************************
 Archivo: RepositorioAgenciaEF.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Repositorios\RepositorioAgenciaEF.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Repositorios\RepositorioAgenciaEF.cs
 ***********************************
 using LogicaNegocio.EntidadesNegocio;
 using LogicaNegocio.InterfacesRepositorios;
@@ -1541,7 +1306,7 @@ namespace LogicaAccesoDatos.Repositorios
 
 ***********************************
 Archivo: RepositorioEnvioEF.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Repositorios\RepositorioEnvioEF.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Repositorios\RepositorioEnvioEF.cs
 ***********************************
 using LogicaNegocio.EntidadesNegocio;
 using LogicaNegocio.InterfacesRepositorios;
@@ -1565,7 +1330,7 @@ namespace LogicaAccesoDatos.Repositorios
 		}
 		public void Add(Envio item)
 		{
-			Envio envioEncontrado = FindByNroTracking(item.NroTracking);
+			Envio envioEncontrado = FindById(item.Id);
 			if (envioEncontrado == null)
 			{
 				Contexto.Envios.Add(item);
@@ -1597,32 +1362,32 @@ namespace LogicaAccesoDatos.Repositorios
 		{
 			Envio envioEncontrado = FindByNroTracking(item.NroTracking);
 
-
-			if (envioEncontrado != null || envioEncontrado == null && envioEncontrado.NroTracking == item.NroTracking)
+			if (envioEncontrado != null)
 			{
-				envioEncontrado.Funcionario = item.Funcionario;
 				envioEncontrado.FuncionarioId = item.FuncionarioId;
-				envioEncontrado.NroTracking = item.NroTracking;
-				envioEncontrado.Cliente = item.Cliente;
 				envioEncontrado.ClienteId = item.ClienteId;
 				envioEncontrado.Estado = item.Estado;
-				envioEncontrado.Id = item.Id;
-				envioEncontrado.NroTracking = item.NroTracking;
 				envioEncontrado.Peso = item.Peso;
-				envioEncontrado.Seguimientos = item.Seguimientos;
 				envioEncontrado.FechaEntrega = item.FechaEntrega;
+				envioEncontrado.FechaEstimada = item.FechaEstimada;
+
+				
 				Contexto.SaveChanges();
+			}
+			else
+			{
+				throw new Exception("No se encontró el envío a actualizar.");
 			}
 		}
 
-		public Envio FindByNroTracking(string nroTracking)
+		public Envio FindByNroTracking(string NroTracking)
 		{
-			return Contexto.Envios.Where(e => e.NroTracking == nroTracking).Include(e => e.Cliente).Include(e => e.Funcionario).SingleOrDefault();
+			return Contexto.Envios.Where(e => e.NroTracking == NroTracking).Include(e => e.Cliente).Include(e => e.Funcionario).Include(e=> e.Seguimientos).SingleOrDefault();
 		}
 
-		public void FinalizarEnvio(string nro)
+		public void FinalizarEnvio(string NroTracking)
 		{
-			Envio envio = FindByNroTracking(nro);
+			Envio envio = FindByNroTracking(NroTracking);
 			if (envio != null)
 			{
 				envio.Estado = Estado.Finalizado;
@@ -1634,12 +1399,104 @@ namespace LogicaAccesoDatos.Repositorios
 				throw new Exception("No se encontró el envío con el Numero de Tracking proporcionado.");
 			}
 		}
+
+		public IEnumerable<Envio> FindByCliente(int clienteId)
+		{
+			return Contexto.Envios.Where(e => e.ClienteId == clienteId).OrderByDescending(e => e.FechaEntrega).Include(e => e.Funcionario).Include(e => e.Cliente).ToList();
+		}
+
+        public IEnumerable<Envio> FindByFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado? estado)
+        {
+            return Contexto.Envios
+                .Where(e =>
+                    (e.FechaEstimada ?? DateTime.MaxValue) >= fechaInicio &&
+                    (e.FechaEstimada ?? DateTime.MinValue) <= fechaFin &&
+                    e.ClienteId == clienteId &&
+                    (estado == null || e.Estado == estado)
+                )
+                .OrderByDescending(e => e.NroTracking)
+                .Include(e => e.Funcionario)
+                .Include(e => e.Cliente)
+                .ToList();
+        }
+
+        public IEnumerable<Envio> FindByComentario(string comentario, int clienteId)
+		{
+			return Contexto.Envios
+				.Include(e => e.Seguimientos) 
+				.Include(e => e.Funcionario)
+				.Include(e => e.Cliente)
+				.Where(e => e.ClienteId == clienteId &&
+							e.Seguimientos.Any(s => s.Comentario.Contains(comentario)))
+				.OrderByDescending(e => e.FechaEntrega)
+				.ToList();
+		}
+
+
+	}
+}
+
+***********************************
+Archivo: RepositorioSeguimientoEF.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Repositorios\RepositorioSeguimientoEF.cs
+***********************************
+using LogicaNegocio.EntidadesNegocio;
+using LogicaNegocio.InterfacesRepositorios;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaAccesoDatos.Repositorios
+{
+	public class RepositorioSeguimientoEF : IRepositorioSeguimiento
+	{
+		private DemoContext Contexto { get; set; }
+
+		public RepositorioSeguimientoEF(DemoContext contexto)
+		{
+			Contexto = contexto;
+		}
+		public void Add(Seguimiento item)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void Delete(int id)
+		{
+			throw new NotImplementedException();
+		}
+
+		public IEnumerable<Seguimiento> FindAll()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Seguimiento FindById(int id)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void Update(Seguimiento item)
+		{
+			throw new NotImplementedException();
+		}
+
+		public IEnumerable<Seguimiento> FindByEnvioId(int envioId)
+		{
+			return Contexto.Seguimientos
+				.Where(s => s.EnvioId == envioId)
+				.OrderByDescending(s => s.FechaHora)
+				.ToList();
+
+		}
 	}
 }
 
 ***********************************
 Archivo: RepositorioUsuarioEF.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Repositorios\RepositorioUsuarioEF.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAccesoDatos\Repositorios\RepositorioUsuarioEF.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -1702,7 +1559,7 @@ namespace LogicaAccesoDatos.Repositorios
 			Usuario usuarioBuscado = FindByCi(item.Ci.Valor);
 
 			
-			if (usuarioBuscado != null || usuarioBuscado == null && usuarioBuscado.Ci == item.Ci)
+			if (usuarioBuscado != null || usuarioBuscado == null && usuarioBuscado.Ci == item.Ci )
 			{
 				usuarioBuscado.Nombre = item.Nombre;
 				usuarioBuscado.Apellido = item.Apellido;
@@ -1743,12 +1600,17 @@ namespace LogicaAccesoDatos.Repositorios
 			return Contexto.Usuarios.Where(c => c.Rol == Rol.Cliente).ToList();
 
 		}
+
+		public Usuario FindByEmailAndPassword(string email, string password)
+		{
+			return Contexto.Usuarios.Where(u => u.Email == email && u.Contraseña == password).SingleOrDefault();
+		}
 	}
 }
 
 ***********************************
 Archivo: Agencia.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Agencia.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Agencia.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -1779,7 +1641,7 @@ namespace LogicaNegocio.EntidadesNegocio
 
 ***********************************
 Archivo: Comun.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Comun.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Comun.cs
 ***********************************
 using LogicaNegocio.ExcepcionesEntidades;
 using System;
@@ -1794,8 +1656,8 @@ namespace LogicaNegocio.EntidadesNegocio
 	{
 		public Agencia Agencia { get; set; }
 
-		public Comun(string numeroTracking, Usuario funcionario, Usuario cliente, int peso, Estado estado, List<Seguimiento> seguimientos, Agencia agencia)
-		: base( numeroTracking, funcionario, cliente, peso, estado)
+		public Comun(string numeroTracking, Usuario funcionario, Usuario cliente, int peso, Estado estado, List<Seguimiento> seguimientos, Agencia agencia, DateTime fechaEstimada)
+		: base( numeroTracking, funcionario, cliente, peso, estado, fechaEstimada)
 		{
 			Agencia = agencia;
 		}
@@ -1808,7 +1670,7 @@ namespace LogicaNegocio.EntidadesNegocio
 
 ***********************************
 Archivo: Envio.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Envio.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Envio.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -1837,17 +1699,20 @@ namespace LogicaNegocio.EntidadesNegocio
         public Estado Estado { get; set; }
 
         public IEnumerable<Seguimiento> Seguimientos { get; set; }
+        public DateTime? FechaEstimada { get; set; }
 
         public DateTime? FechaEntrega { get; set; }
         protected Envio() { }
 
-        public Envio(string nroTracking, Usuario funcionario, Usuario cliente, int peso, Estado estado)
+        public Envio(string nroTracking, Usuario funcionario, Usuario cliente, int peso, Estado estado,DateTime fechaEstimada)
         {
             NroTracking = nroTracking;
             Funcionario = funcionario;
             Cliente = cliente;
             Peso = peso;
             Estado = estado;
+            FechaEstimada = fechaEstimada;
+
         }
     }
 		public enum Estado
@@ -1860,7 +1725,7 @@ namespace LogicaNegocio.EntidadesNegocio
 
 ***********************************
 Archivo: Seguimiento.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Seguimiento.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Seguimiento.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -1898,7 +1763,7 @@ namespace LogicaNegocio.EntidadesNegocio
 
 ***********************************
 Archivo: Ubicacion.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Ubicacion.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Ubicacion.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -1926,7 +1791,7 @@ namespace LogicaNegocio.EntidadesNegocio
 
 ***********************************
 Archivo: Urgente.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Urgente.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Urgente.cs
 ***********************************
 using LogicaNegocio.ExcepcionesEntidades;
 using System;
@@ -1943,8 +1808,8 @@ namespace LogicaNegocio.EntidadesNegocio
         public Boolean Entregado { get; set; }
         public int TiempoEntrega { get; set; }
 
-		public Urgente(string numeroTracking,Usuario funcionario,Usuario cliente,int peso,Estado estado,List<Seguimiento> seguimientos,string direccionPostal,bool entregado,int tiempoEntrega): 
-			base(numeroTracking, funcionario, cliente, peso, estado)
+		public Urgente(string numeroTracking,Usuario funcionario,Usuario cliente,int peso,Estado estado,List<Seguimiento> seguimientos,string direccionPostal,bool entregado,int tiempoEntrega, DateTime fechaEstimada): 
+			base(numeroTracking, funcionario, cliente, peso, estado, fechaEstimada)
 		{
 			DireccionPostal = direccionPostal;
 			Entregado = entregado;
@@ -1958,7 +1823,7 @@ namespace LogicaNegocio.EntidadesNegocio
 
 ***********************************
 Archivo: Usuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Usuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\EntidadesNegocio\Usuario.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -1980,9 +1845,6 @@ namespace LogicaNegocio.EntidadesNegocio
 		public string Email { get; set; }
 		public string Contraseña { get; set; }
 		public Rol Rol { get; set; }
-
-
-
 
 		private Usuario() { }
 
@@ -2011,7 +1873,7 @@ namespace LogicaNegocio.EntidadesNegocio
 
 ***********************************
 Archivo: AgenciaException.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\ExcepcionesEntidades\AgenciaException.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\ExcepcionesEntidades\AgenciaException.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -2033,7 +1895,7 @@ namespace LogicaNegocio.ExcepcionesEntidades
 
 ***********************************
 Archivo: EnvioException.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\ExcepcionesEntidades\EnvioException.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\ExcepcionesEntidades\EnvioException.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -2055,7 +1917,7 @@ namespace LogicaNegocio.ExcepcionesEntidades
 
 ***********************************
 Archivo: UsuarioException.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\ExcepcionesEntidades\UsuarioException.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\ExcepcionesEntidades\UsuarioException.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -2078,7 +1940,7 @@ namespace LogicaNegocio.ExcepcionesEntidades
 
 ***********************************
 Archivo: IRepositorio.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\InterfacesRepositorios\IRepositorio.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\InterfacesRepositorios\IRepositorio.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -2102,7 +1964,7 @@ namespace LogicaNegocio.InterfacesRepositorios
 
 ***********************************
 Archivo: IRepositorioAgencia.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\InterfacesRepositorios\IRepositorioAgencia.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\InterfacesRepositorios\IRepositorioAgencia.cs
 ***********************************
 using LogicaNegocio.EntidadesNegocio;
 using System;
@@ -2120,7 +1982,7 @@ namespace LogicaNegocio.InterfacesRepositorios
 
 ***********************************
 Archivo: IRepositorioEnvio.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\InterfacesRepositorios\IRepositorioEnvio.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\InterfacesRepositorios\IRepositorioEnvio.cs
 ***********************************
 using LogicaNegocio.EntidadesNegocio;
 using System;
@@ -2133,16 +1995,42 @@ namespace LogicaNegocio.InterfacesRepositorios
 {
    public interface IRepositorioEnvio : IRepositorio<Envio>
     {
-        Envio FindByNroTracking(string nroTracking);
+        Envio FindByNroTracking(string NroTracking);
 
-		void FinalizarEnvio(string nroTracking);
+		void FinalizarEnvio(string NroTracking);
+
+		IEnumerable<Envio>FindByCliente(int clienteId);
+
+		IEnumerable<Envio>FindByFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado? estado);
+
+		IEnumerable<Envio>FindByComentario(string comentario, int clienteId);
+
+	}
+}
+
+***********************************
+Archivo: IRepositorioSeguimiento.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\InterfacesRepositorios\IRepositorioSeguimiento.cs
+***********************************
+using LogicaNegocio.EntidadesNegocio;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaNegocio.InterfacesRepositorios
+{
+	public interface IRepositorioSeguimiento : IRepositorio<Seguimiento>
+	{
+		IEnumerable<Seguimiento> FindByEnvioId(int envioId);
 		
 	}
 }
 
 ***********************************
 Archivo: IRepositorioUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\InterfacesRepositorios\IRepositorioUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\InterfacesRepositorios\IRepositorioUsuario.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -2158,13 +2046,14 @@ namespace LogicaNegocio.InterfacesRepositorios
 		Usuario FindByEmail(string email);
 		IEnumerable<Usuario> FindByRolFuncionario();
 		IEnumerable<Usuario> FindByRolCliente();
-		
+		Usuario FindByEmailAndPassword(string email, string password);
+
 	}
 }
 
 ***********************************
 Archivo: CedulaUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaNegocio\ValueObject\CedulaUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaNegocio\ValueObject\CedulaUsuario.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -2208,785 +2097,13 @@ namespace LogicaNegocio.ValueObject
 
 ***********************************
 Archivo: EnvioController.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Controllers\EnvioController.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\WebAPI\Controllers\EnvioController.cs
 ***********************************
-using Compartido.DTOs.Agencia;
-using Compartido.DTOs.Envios;
-using Compartido.DTOs.Usuario;
-using Compartido.DTOs.Seguimiento;
-using LogicaAplicacion.ImplementacionCasosUso.UsuarioCU;
-using LogicaAplicacion.InterfacesCasosUso.AgenciaCU;
-using LogicaAplicacion.InterfacesCasosUso.EnvioCU;
-using LogicaAplicacion.InterfacesCasosUso.UsuarioCU;
-using LogicaNegocio.EntidadesNegocio;
-using LogicaNegocio.ExcepcionesEntidades;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using MVC.Filtro;
-using MVC.Models.Agencias;
-using MVC.Models.Envios;
-using MVC.Models.Usuarios;
-
-namespace MVC.Controllers
-{
-	[Logueado]
-	public class EnvioController : Controller
-	{
-		private IAltaEnvioComun CUAltaEnvioComun { get; set; }
-		private IAltaEnvioUrgente CUAltaEnvioUrgente { get; set; }
-
-		private IListadoEnvios CUListadoEnvios { get; set; }
-
-		private IListadoCliente CUListadoCliente { get; set; }
-
-		private IListadoAgencias CUListadoAgencia { get; set; }
-
-		private IListadoUsuarios CUListaUsuario { get; set; }
-
-        private IFinalizarEnvio CUFinalizarEnvio { get; set; }
-
-		private IAgregarSeguimiento agregarSeguimiento { get; set; }
-
-		public EnvioController(IAltaEnvioComun altaEnvioComun, IAltaEnvioUrgente altaEnvioUrgente, IListadoEnvios cUListadoEnvios, IFinalizarEnvio cUFinalizarEnvio,IListadoUsuarios cUListaUsuarios,
-			IListadoCliente cUListadoClientes,IListadoAgencias listadoAgencias,
-			IAgregarSeguimiento cUAgregarSeguimiento)
-		{
-			CUAltaEnvioComun = altaEnvioComun;
-			CUAltaEnvioUrgente = altaEnvioUrgente;
-			CUListadoEnvios = cUListadoEnvios;
-			CUFinalizarEnvio = cUFinalizarEnvio;
-            CUListaUsuario = cUListaUsuarios;
-			CUListadoCliente = cUListadoClientes;
-			CUListadoAgencia = listadoAgencias;
-			agregarSeguimiento = cUAgregarSeguimiento;
-		}
-		// GET: Envio
-		public ActionResult Index()
-		{
-			IEnumerable<ListadoEnviosDTO> enviosDTOs = CUListadoEnvios.Ejecutar();
-			List<ListadoEnviosVM> listadoEnviosVMs =
-				new List<ListadoEnviosVM>();
-			try
-			{
-
-				listadoEnviosVMs = enviosDTOs.Select(c => new ListadoEnviosVM()
-				{
-					Id = c.Id,
-					Peso = c.Peso,
-					FuncionarioNombre = c.FuncionarioNombre,
-					ClienteNombre = c.ClienteNombre,
-					Estado = c.Estado,
-					FechaEntrega = c.FechaEntrega
-
-				}).ToList();
-			}
-			catch (Exception ex)
-			{
-				ViewBag.Mensaje = "Datos incorrectos";
-			}
-
-			return View(listadoEnviosVMs);
-		}
-
-		// GET: Envio/Details/5
-		public ActionResult Details(int id)
-		{
-			return View();
-		}
-
-		// GET: Envio/Create
-		public ActionResult CreateEnvioComun()
-		{
-            AltaEnvioComunVM comunVM = new AltaEnvioComunVM();
-			try
-			{
-
-				List<ListadoUsuariosDTO> datosUsuarios = CUListaUsuario.Ejecutar().ToList();
-				comunVM.Usuarios = datosUsuarios.Select(dtoUsuario => new Models.Usuarios.UsuarioViewModel()
-				{
-					Id = dtoUsuario.Id,
-					Nombre = dtoUsuario.Nombre
-				}).ToList();
-
-				List<ListadoUsuariosDTO> datosClientes = CUListadoCliente.Ejecutar().ToList();
-				comunVM.Cliente = datosClientes.Select(dtoUsuario => new Models.Usuarios.ClienteViewModel()
-				{
-					Id = dtoUsuario.Id,
-					Nombre = dtoUsuario.Nombre
-				}).ToList();
-				List < ListadoAgenciasDTO> datosAgencias = CUListadoAgencia.Ejecutar().ToList();
-				comunVM.Agencia = datosAgencias.Select(dtoAgencia => new Models.Agencias.AgenciaViewModel()
-				{
-					Id = dtoAgencia.Id,
-					Nombre = dtoAgencia.Nombre
-					
-				}).ToList();
-
-
-			}
-			catch (EnvioException ex)
-            {
-                ViewBag.Mensaje = ex.Message;
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Mensaje = "Datos incorrectos";
-            }
-
-			return View(comunVM);
-        }
-		public ActionResult CreateEnvioUrgente()
-		{
-			AltaEnvioUrgenteVM urgenteVM = new AltaEnvioUrgenteVM();
-			try
-			{
-
-				List<ListadoUsuariosDTO> datosUsuarios = CUListaUsuario.Ejecutar().ToList();
-				urgenteVM.Usuarios = datosUsuarios.Select(dtoUsuario => new Models.Usuarios.UsuarioViewModel()
-				{
-					Id = dtoUsuario.Id,
-					Nombre = dtoUsuario.Nombre
-				}).ToList();
-
-				List<ListadoUsuariosDTO> datosClientes = CUListadoCliente.Ejecutar().ToList();
-				urgenteVM.Cliente = datosClientes.Select(dtoUsuario => new Models.Usuarios.ClienteViewModel()
-				{
-					Id = dtoUsuario.Id,
-					Nombre = dtoUsuario.Nombre
-				}).ToList();
-
-
-			}
-			catch (EnvioException ex)
-			{
-				ViewBag.Mensaje = ex.Message;
-			}
-			catch (Exception ex)
-			{
-				ViewBag.Mensaje = "Datos incorrectos";
-			}
-
-			return View(urgenteVM);
-		}
-
-		// POST: Envio/Create
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public ActionResult CreateEnvioComun(AltaEnvioComunVM envioComun)
-		{
-			try
-			{
-				if (ModelState.IsValid)
-				{
-					AltaEnvioComunDTO envioDTO = new AltaEnvioComunDTO()
-					{
-						NumeroTracking = envioComun.NumeroTracking,
-						Peso = envioComun.Peso,
-						FuncionarioId = envioComun.FuncionarioId,
-						ClienteId = envioComun.ClienteId,
-						AgenciaId = envioComun.AgenciaId,
-						Estado = Estado.En_Proceso
-					};
-					CUAltaEnvioComun.Ejecutar(envioDTO);
-					return RedirectToAction(nameof(Index));
-				}
-
-			}
-			catch (UsuarioException ex)
-			{
-				ViewBag.Message = ex.Message;
-
-			}
-			catch (Exception ex)
-			{
-				ViewBag.DatosExcepcion = ex.StackTrace;
-				ViewBag.Mensaje = "Error en los datos";
-			}
-			envioComun.Usuarios = CUListaUsuario.Ejecutar().Select(dtoUsuario => new UsuarioViewModel
-			{
-				Id = dtoUsuario.Id,
-				Nombre = dtoUsuario.Nombre
-			}).ToList();
-
-			envioComun.Cliente = CUListadoCliente.Ejecutar().Select(dtoUsuario => new ClienteViewModel
-			{
-				Id = dtoUsuario.Id,
-				Nombre = dtoUsuario.Nombre
-			}).ToList();
-			
-			envioComun.Agencia = CUListadoAgencia.Ejecutar().Select(dtoAgencia => new AgenciaViewModel
-			{
-				Id = dtoAgencia.Id,
-				Nombre = dtoAgencia.Nombre
-
-			}).ToList();
-			return View(envioComun);
-		}
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public ActionResult CreateEnvioUrgente(AltaEnvioUrgenteVM envioUrgente)
-		{
-			try
-			{
-				if (ModelState.IsValid)
-				{
-					AltaEnvioUrgenteDTO envioDTO = new AltaEnvioUrgenteDTO()
-					{
-						NumeroTracking = envioUrgente.NumeroTracking,
-						Peso = envioUrgente.Peso,
-						FuncionarioId = envioUrgente.FuncionarioId,
-						ClienteId = envioUrgente.ClienteId,
-						DireccionPostal = envioUrgente.DireccionPostal,
-						Entregado = envioUrgente.Entregado,
-						TiempoEntrega = envioUrgente.TiempoEntrega,
-						Estado = Estado.En_Proceso
-					};
-					CUAltaEnvioUrgente.Ejecutar(envioDTO);
-					return RedirectToAction(nameof(Index));
-				}
-
-			}
-			catch (UsuarioException ex)
-			{
-				ViewBag.Message = ex.Message;
-
-			}
-			catch (Exception ex)
-			{
-				ViewBag.DatosExcepcion = ex.StackTrace;
-				ViewBag.Mensaje = "Error en los datos";
-			}
-			envioUrgente.Usuarios = CUListaUsuario.Ejecutar().Select(dtoUsuario => new UsuarioViewModel
-			{
-				Id = dtoUsuario.Id,
-				Nombre = dtoUsuario.Nombre
-			}).ToList();
-
-			envioUrgente.Cliente = CUListadoCliente.Ejecutar().Select(dtoUsuario => new ClienteViewModel
-			{
-				Id = dtoUsuario.Id,
-				Nombre = dtoUsuario.Nombre
-			}).ToList();
-			return View(envioUrgente);
-		}
-
-		// GET: Envio/Edit/5
-		public ActionResult Edit(int id)
-		{
-			return View();
-		}
-
-		// POST: Envio/Edit/5
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public ActionResult Edit(int id, IFormCollection collection)
-		{
-			try
-			{
-				return RedirectToAction(nameof(Index));
-			}
-			catch
-			{
-				return View();
-			}
-		}
-
-		// GET: Envio/Delete/5
-		public ActionResult Delete(int id)
-		{
-			return View();
-		}
-
-		// POST: Envio/Delete/5
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public ActionResult Delete(int id, IFormCollection collection)
-		{
-			try
-			{
-				return RedirectToAction(nameof(Index));
-			}
-			catch
-			{
-				return View();
-			}
-		}	
-
-		[HttpPost]
-		public ActionResult CambiarEstadoFinalizado(string nroTracking)
-		{
-			try
-			{
-				if (string.IsNullOrEmpty(nroTracking))
-				{
-					ViewBag.Mensaje = "El número de tracking no es válido.";
-					return RedirectToAction(nameof(Index));
-				}
-				CUFinalizarEnvio.Ejecutar(nroTracking);
-				return RedirectToAction(nameof(Index));
-			}
-
-			catch (EnvioException e)
-			{
-
-				ViewBag.Mensaje = e.Message;
-				return RedirectToAction(nameof(Index));
-			}
-			catch (Exception ex)
-			{
-				ViewBag.DatosExcepcion = ex.StackTrace;
-				ViewBag.Mensaje = "Error en los datos";
-				return RedirectToAction(nameof(Index));
-			}
-
-			
-
-
-		}
-
-		public IActionResult AgregarSeguimiento(int envioId)
-		{
-			AgregarSeguimientoVM seguimientoVM = new AgregarSeguimientoVM();
-			try
-			{
-				seguimientoVM.EnvioId = envioId;
-				seguimientoVM.UsuarioId = (int)HttpContext.Session.GetInt32("usuarioId");
-			}
-			catch (EnvioException ex)
-			{
-				ViewBag.Mensaje = ex.Message;
-			}
-			catch (Exception ex)
-			{
-				ViewBag.Mensaje = "Datos incorrectos";
-			}
-			return View(seguimientoVM);
-		}
-
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public IActionResult AgregarSeguimiento(AgregarSeguimientoVM seguimientoVM)
-		{
-			try
-			{
-				if (ModelState.IsValid)
-				{
-					SeguimientoDTO seguimientoDTO = new SeguimientoDTO()
-					{
-						EnvioId = seguimientoVM.EnvioId,
-						UsuarioId = seguimientoVM.UsuarioId,
-						Comentario = seguimientoVM.Comentario,
-						FechaHora = DateTime.Now
-					};
-					agregarSeguimiento.Ejecutar(seguimientoDTO);
-					return RedirectToAction(nameof(Index));
-				}
-			}
-			catch (EnvioException ex)
-			{
-				ViewBag.Message = ex.Message;
-			}
-			catch (Exception ex)
-			{
-				ViewBag.DatosExcepcion = ex.StackTrace;
-				ViewBag.Mensaje = "Error en los datos";
-			}
-			return View(seguimientoVM);
-		}
-
-	}
-}
-
-***********************************
-Archivo: HomeController.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Controllers\HomeController.cs
-***********************************
-using Microsoft.AspNetCore.Mvc;
-using MVC.Models;
 using System.Diagnostics;
-
-namespace MVC.Controllers
-{
-	public class HomeController : Controller
-	{
-		private readonly ILogger<HomeController> _logger;
-
-		public HomeController(ILogger<HomeController> logger)
-		{
-			_logger = logger;
-		}
-
-		public IActionResult Index()
-		{
-			return View();
-		}
-
-		public IActionResult Privacy()
-		{
-			return View();
-		}
-
-		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-		public IActionResult Error()
-		{
-			return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-		}
-	}
-}
-
-***********************************
-Archivo: UsuarioController.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Controllers\UsuarioController.cs
-***********************************
-using Compartido.DTOs.Usuario;
-using LogicaAplicacion.ImplementacionCasosUso.UsuarioCU;
-using LogicaAplicacion.InterfacesCasosUso.UsuarioCU;
-using LogicaNegocio.ExcepcionesEntidades;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using MVC.Filtro;
-using MVC.Models.Usuarios;
-
-
-namespace MVC.Controllers
-{
-	//[Admin]
-	public class UsuarioController : Controller
-	{
-		private IRegistrarUsuario CURegistroUsuario { get; set; }
-		private IListadoUsuarios CUListadoUsuarios { get; set; }
-		private IEliminarUsuario CUEliminarUsuarios { get; set; }
-		private IBuscarUsuario CUBuscarUsuario { get; set; }
-		private IModificarUsuario CUModificarUsuario { get; set; }
-		private ILoginUsuario CULoginUsuario { get; set; }
-
-		public UsuarioController(IRegistrarUsuario registroUsuarioCU, IListadoUsuarios cUListadoUsuarios,
-			IEliminarUsuario cUEliminarUsuarios,
-			IBuscarUsuario cUBuscarUsuarios,
-			IModificarUsuario cUModificarUsuario, ILoginUsuario cULoginUsuario)
-		{
-			CURegistroUsuario = registroUsuarioCU;
-			CUListadoUsuarios = cUListadoUsuarios;
-			CUEliminarUsuarios = cUEliminarUsuarios;
-			CUBuscarUsuario = cUBuscarUsuarios;
-			CUModificarUsuario = cUModificarUsuario;
-			CULoginUsuario = cULoginUsuario;
-		}
-		// GET: UsuarioController
-		[Logueado]
-		public ActionResult Index()
-		{
-
-			IEnumerable<ListadoUsuariosDTO> usuariosDTO = CUListadoUsuarios.Ejecutar();
-			List<ListadoUsuariosViewModel> listadoUsuarioViewModel =
-				new List<ListadoUsuariosViewModel>();
-			try
-			{
-
-				listadoUsuarioViewModel = usuariosDTO.Select(static c => new ListadoUsuariosViewModel()
-				{
-					Id = c.Id,
-					Ci = c.Ci,
-					Nombre = c.Nombre,
-					Apellido = c.Apellido,
-					Email = c.Email,
-					Contraseña = c.Contraseña,
-					Rol = (Models.Usuarios.Rol)c.rol,
-				}).ToList();
-			}
-			catch (Exception ex)
-			{
-				ViewBag.Mensaje = "Datos incorrectos";
-			}
-
-			return View(listadoUsuarioViewModel);
-		}
-
-		// GET: UsuarioController/Details/5
-		[Logueado]
-		public ActionResult Details(int id)
-		{
-			return View();
-		}
-
-		// GET: UsuarioController/Create
-		[Logueado]
-		[Admin]
-		public ActionResult Create()
-		{
-			return View();
-		}
-
-		// POST: UsuarioController/Create
-		[Logueado]
-		[Admin]
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public ActionResult Create(UsuarioViewModel usuarioVM)
-		{
-			try
-			{
-				if (ModelState.IsValid)
-				{
-					UsuarioDTO usuarioDTO = new UsuarioDTO()
-					{
-						Nombre = usuarioVM.Nombre,
-						Apellido = usuarioVM.Apellido,
-						Ci = usuarioVM.Ci,
-						Email = usuarioVM.Email,
-						Contraseña = usuarioVM.Contraseña,
-						Rol = (Compartido.DTOs.Usuario.Rol)usuarioVM.Rol,
-					};
-
-					CURegistroUsuario.Ejecutar(usuarioDTO);
-					return RedirectToAction(nameof(Index));
-				}
-
-			}
-			catch (UsuarioException ex)
-			{
-				ViewBag.Message = ex.Message;
-
-			}
-			catch (Exception ex)
-			{
-				ViewBag.DatosExcepcion = ex.StackTrace;
-				ViewBag.Mensaje = "Error en los datos";
-			}
-			return View();
-		}
-
-		// GET: UsuarioController/Edit/5
-		[Logueado]
-		[Admin]
-		public ActionResult Edit(int id)
-		{
-			ListadoUsuariosViewModel usuarioVM = null;
-			try
-			{
-				if(id <= 0)
-				{
-					throw new UsuarioException("El ID es Incorrecta");
-				}
-				ListadoUsuariosDTO usuariosDTO = CUBuscarUsuario.Ejecutar(id);
-				usuarioVM = new ListadoUsuariosViewModel()
-				{
-					Id =usuariosDTO.Id,
-					Ci = usuariosDTO.Ci,
-					Nombre = usuariosDTO.Nombre,	
-					Apellido = usuariosDTO.Apellido,
-					Email = usuariosDTO.Email,
-					Contraseña = usuariosDTO.Contraseña,
-					Rol = (Models.Usuarios.Rol)usuariosDTO.rol
-				};
-			}
-			catch (UsuarioException ex)
-			{
-
-				ViewBag.Mensaje = ex.Message;
-			}
-
-			return View(usuarioVM);		
-		}
-		// POST: UsuarioController/Edit/5
-		[Logueado]
-		[Admin]
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public ActionResult Edit(int id, ListadoUsuariosViewModel usuarioVM)
-		{
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    ListadoUsuariosDTO usuariosDTO = new ListadoUsuariosDTO()
-                    {
-						Id = usuarioVM.Id,
-                        Ci = usuarioVM.Ci,
-						Nombre = usuarioVM.Nombre,
-						Apellido = usuarioVM.Apellido,
-						Email = usuarioVM.Email,
-						Contraseña = usuarioVM.Contraseña,
-						rol = (Compartido.DTOs.Usuario.Rol)usuarioVM.Rol
-
-                    };
-                    CUModificarUsuario.Ejecutar(usuariosDTO);
-                    return RedirectToAction(nameof(Index));
-                }
-                else
-                {
-                    ViewBag.Mensaje = "Datos incorrectos";
-                }
-            }
-            catch (UsuarioException ex)
-            {
-                ViewBag.Mensaje = ex.Message;
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Mensaje = "Error en los datos";
-            }
-            return View();
-        }
-
-		// GET: UsuarioController/Delete/5
-		[Logueado]
-		[Admin]
-		public ActionResult Delete(int id)
-		{
-            ListadoUsuariosViewModel usuarioVM = null;
-            try
-            {
-                if (id <= 0)
-                {
-                    throw new UsuarioException("El id no es correcto");
-                }
-                ListadoUsuariosDTO usuarioDTO =
-                    CUBuscarUsuario.Ejecutar(id);
-                usuarioVM = new ListadoUsuariosViewModel()
-                {
-                    Id = usuarioDTO.Id,
-                    Nombre = usuarioDTO.Nombre,
-					Apellido = usuarioDTO.Apellido,
-					Email = usuarioDTO.Email,
-					Contraseña = usuarioDTO.Contraseña,
-					Rol = (Models.Usuarios.Rol)usuarioDTO.rol
-                };
-            }
-            catch (UsuarioException ex)
-            {
-                ViewBag.Mensaje = ex.Message;
-            }
-
-            return View(usuarioVM);
-        }
-
-		// POST: UsuarioController/Delete/5
-		[Logueado]
-		[Admin]
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public ActionResult Delete(int id, ListadoUsuariosViewModel usuarioVM)
-		{
-            try
-            {
-                CUEliminarUsuarios.Ejecutar(id);
-                return RedirectToAction(nameof(Index));
-            }
-            catch (UsuarioException ex)
-            {
-                ViewBag.Mensaje = ex.Message;
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Mensaje = "Error en los datos";
-            }
-            return View();
-        }
-		public ActionResult Login()
-		{
-			return View();
-		}
-
-		// POST: Usuario/Login
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public ActionResult Login(string email, string contraseña)
-		{
-			try
-			{
-				UsuarioDTO usuarioDTO = CULoginUsuario.Ejecutar(email, contraseña);
-
-				HttpContext.Session.SetInt32("usuarioId", usuarioDTO.Id);
-				HttpContext.Session.SetString("email", usuarioDTO.Email);
-				HttpContext.Session.SetString("rol", usuarioDTO.Rol.ToString());
-				HttpContext.Session.SetString("nombre", usuarioDTO.Nombre);
-				return RedirectToAction("Index", "Home");
-			}
-			catch (UsuarioException ex)
-			{
-				ViewBag.ErrorMessage = ex.Message;
-				return View();
-			}
-		}
-
-		public IActionResult Logout()
-		{
-			HttpContext.Session.Clear();
-
-
-			return RedirectToAction("Login");
-		}
-	}
-}
-
-***********************************
-Archivo: Admin.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Filtro\Admin.cs
-***********************************
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc;
-using Compartido.DTOs.Usuario;
-
-public class Admin : Attribute, IAuthorizationFilter
-{
-	public void OnAuthorization(AuthorizationFilterContext context)
-	{
-		string rol = context.HttpContext.Session.GetString("rol");
-
-		if (rol == null || rol != Rol.Administrador.ToString())
-		{
-			context.Result = new RedirectResult("/Usuario/Login");
-		}
-	}
-}
-***********************************
-Archivo: Logueado.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Filtro\Logueado.cs
-***********************************
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc;
-
-namespace MVC.Filtro
-{
-	public class Logueado : Attribute, IAuthorizationFilter
-	{
-		public void OnAuthorization(AuthorizationFilterContext context)
-		{
-			if (context.HttpContext.Session.GetString("email") == null)
-			{
-				context.Result = new RedirectResult("/Home/index");
-			}
-
-
-
-
-		}
-	}
-}
-
-
-
-
-***********************************
-Archivo: ErrorViewModel.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Models\ErrorViewModel.cs
-***********************************
-namespace MVC.Models
-{
-	public class ErrorViewModel
-	{
-		public string? RequestId { get; set; }
-
-		public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-	}
-}
-
-***********************************
-Archivo: EnvioController.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\WebAPI\Controllers\EnvioController.cs
-***********************************
+using Compartido.DTOs.Envios;
 using LogicaAplicacion.InterfacesCasosUso.EnvioCU;
+using LogicaNegocio.EntidadesNegocio;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -3001,12 +2118,30 @@ namespace WebAPI.Controllers
 
 		public IBuscarEnvios CUbuscarEnvios { get; set; }
 
-		public EnvioController(IListadoEnvios cUlistadoEnvios, IBuscarEnvios cUbuscarEnvios)
+		public IAltaEnvioComun CUaltaEnvioComun { get; set; }
+		public IAltaEnvioUrgente CUaltaEnvioUrgente { get; set; }
+		public IListadoEnviosxFecha CUlistadoxFechas { get; set; }
+
+		public IListadoEnviosxComentario CUlistadoEnviosxComentarios { get; set; }
+
+		public IListadoEnviosClienteLogueado CUlistadoEnviosClienteLogueado { get; set; }
+		public EnvioController(
+		IListadoEnvios cUlistadoEnvios,
+		IBuscarEnvios cUbuscarEnvios,
+		IAltaEnvioUrgente cUaltaEnvioUrgente,
+		IAltaEnvioComun cUaltaEnvioComun,
+		IListadoEnviosClienteLogueado cUlistadoEnviosClienteLogueado,
+		IListadoEnviosxFecha cUlistadoxFechas,
+		IListadoEnviosxComentario cUlistadoxComentarios)
 		{
 			CUlistadoEnvios = cUlistadoEnvios;
 			CUbuscarEnvios = cUbuscarEnvios;
+			CUaltaEnvioUrgente = cUaltaEnvioUrgente;
+			CUaltaEnvioComun = cUaltaEnvioComun;
+			CUlistadoEnviosClienteLogueado = cUlistadoEnviosClienteLogueado;
+			CUlistadoxFechas = cUlistadoxFechas;
+			CUlistadoEnviosxComentarios = cUlistadoxComentarios;
 		}
-
 
 
 		// GET: api/<EnvioController>
@@ -3016,42 +2151,152 @@ namespace WebAPI.Controllers
 			//FindAll
 			try
 			{
-				return Ok(CUlistadoEnvios.Ejecutar());
+				List<ListadoEnviosDTO> envios = CUlistadoEnvios.Ejecutar().ToList();
+				if(envios == null || envios.Count == 0)
+				{
+					return NotFound("No se encontraron envíos.");
+				}
+				else
+				{
+					return Ok(envios);
+				}
 			}
 			catch (Exception ex)
 			{
-
-				return StatusCode(500);
+				return StatusCode(500, "Error interno");
 			}
 
 		}
+		[Authorize(Roles = "Cliente")]
+		[HttpGet("cliente/{clienteId}")]
+		public IActionResult GetPorCliente(int clienteId)
+		{
+			//FindAll por Cliente Logueado
+			try
+			{
+				List<ListadoEnviosDTO> envios = CUlistadoEnviosClienteLogueado.Ejecutar(clienteId).ToList();
+				if (envios == null || envios.Count == 0)
+				{
+					return NotFound("No se encontraron envíos para el cliente logueado.");
+				}
+				else
+				{
+					return Ok(envios);
+				}
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, "Error interno");
+			}
+		}
+		[Authorize(Roles = "Cliente")]
+		[HttpGet("porFechas")]
+		public IActionResult GetEnviosPorFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado? estado)
+		{
+            Debug.WriteLine($"Estado recibido: {estado}");
+            try
+			{
+				if (fechaInicio == DateTime.MinValue || fechaFin == DateTime.MinValue)
+					return BadRequest("Las fechas no pueden estar vacías.");
+
+				if (fechaInicio > fechaFin)
+					return BadRequest("La fecha de inicio no puede ser mayor que la fecha de fin.");
+
+                List<ListadoEnviosDTO> envios = CUlistadoxFechas.Ejecutar(fechaInicio, fechaFin, clienteId, estado).ToList();
+
+                if (envios == null || envios.Count == 0)
+					return NotFound("No se encontraron envíos en el rango de fechas para este cliente.");
+
+				return Ok(envios);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, "Error interno");
+			}
+		}
+		[Authorize(Roles = "Cliente")]
+		[HttpGet("porComentario")]
+		public IActionResult GetEnviosPorComentario(string comentario, int clienteId)
+		{
+			try
+			{
+				if (string.IsNullOrWhiteSpace(comentario))
+					return BadRequest("Debe ingresar una palabra a buscar.");
+
+				List<ListadoEnviosDTO> envios = CUlistadoEnviosxComentarios.Ejecutar(comentario, clienteId).ToList();
+
+				if (!envios.Any())
+					return NotFound("No se encontraron envíos con ese comentario.");
+
+				return Ok(envios);
+			}
+			catch (Exception)
+			{
+				return StatusCode(500, "Error interno.");
+			}
+		}
 
 		// GET api/<EnvioController>/5
-		[HttpGet("{NroTracking}")]
-		public IActionResult Get(string NroTracking)
+		[HttpGet("FindByNroTracking/{nroTracking}")]
+		public IActionResult Get(string nroTracking)
 		{
 			//FindById
 			try
 			{
-
-				if (NroTracking == null)
+				ListadoEnviosDTO envios = CUbuscarEnvios.Ejecutar(nroTracking);
+				if (envios == null)
 				{
-					return BadRequest("El NroTracking no puede ser Nulo");
+					return NotFound("No se encontraron envíos para este numero de Tracking.");
 				}
-				return Ok(CUbuscarEnvios.Ejecutar(NroTracking));
+				else
+				{
+					return Ok(envios);
+				}
 			}
 			catch (Exception ex)
 			{
-
-				return StatusCode(500, "Datos Incorrectos");
+				return StatusCode(500, "Error interno");
 			}
 		}
 
 		// POST api/<EnvioController>
-		[HttpPost]
-		public void Post([FromBody] string value)
+		[HttpPost("urgente")]
+		public IActionResult PostUrgente([FromBody] AltaEnvioUrgenteDTO envioDTO)
 		{
 			//Add o Create
+			try
+			{
+				if (envioDTO == null)
+				{
+					return BadRequest("Datos incorrectos");
+				}
+
+				CUaltaEnvioUrgente.Ejecutar(envioDTO);
+				return Ok("Envío urgente registrado correctamente.");
+			}
+			catch (Exception)
+			{
+				return StatusCode(500, "Error interno al registrar envío urgente.");
+			}
+		}
+
+		[HttpPost("comun")]
+		public IActionResult PostComun([FromBody] AltaEnvioComunDTO envioDTO)
+		{
+			try
+			{
+				if (envioDTO == null)
+				{
+					return BadRequest("Datos incorrectos");
+				}
+
+				CUaltaEnvioComun.Ejecutar(envioDTO);
+				return Ok("Envío común registrado correctamente.");
+			}
+			catch (Exception)
+			{
+				return StatusCode(500, "Error interno al registrar envío común.");
+			}
 		}
 
 		// PUT api/<EnvioController>/5
@@ -3071,8 +2316,165 @@ namespace WebAPI.Controllers
 }
 
 ***********************************
+Archivo: SeguimientoController.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\WebAPI\Controllers\SeguimientoController.cs
+***********************************
+using Compartido.DTOs.Envios;
+using Compartido.DTOs.Seguimiento;
+using LogicaAplicacion.InterfacesCasosUso.SeguimientoCU;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+
+namespace WebAPI.Controllers
+{
+	[Route("api/[controller]")]
+	[ApiController]
+	public class SeguimientoController : ControllerBase
+	{
+		public IListadoSeguimientos ListadoSeguimientos { get; set; }
+		public SeguimientoController(IListadoSeguimientos listadoSeguimientos)
+		{
+			ListadoSeguimientos = listadoSeguimientos;
+		}
+		// GET: api/<SeguimientoController>
+		[Authorize(Roles = "Cliente")]
+		[HttpGet("envio/{envioId}")]
+		public IActionResult GetSeguimientosPorEnvio(int envioId)
+		{
+			try
+			{
+				List<SeguimientoDTO> seguimientos = ListadoSeguimientos.Ejecutar(envioId).ToList();
+				if (seguimientos == null || seguimientos.Count == 0)
+				{
+					return NotFound("No se encontraron seguimientos para este envio.");
+				}
+				else
+				{
+					return Ok(seguimientos);
+				}
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, "Error interno");
+			}
+
+		}
+
+		// GET api/<SeguimientoController>/5
+		[HttpGet("{id}")]
+		public string Get(int id)
+		{
+			return "value";
+		}
+
+		// POST api/<SeguimientoController>
+		[HttpPost]
+		public void Post([FromBody] string value)
+		{
+		}
+
+		// PUT api/<SeguimientoController>/5
+		[HttpPut("{id}")]
+		public void Put(int id, [FromBody] string value)
+		{
+		}
+
+		// DELETE api/<SeguimientoController>/5
+		[HttpDelete("{id}")]
+		public void Delete(int id)
+		{
+		}
+	}
+}
+
+***********************************
+Archivo: UsuarioController.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\WebAPI\Controllers\UsuarioController.cs
+***********************************
+using Compartido.DTOs.Usuario;
+using LogicaAplicacion.InterfacesCasosUso.UsuarioCU;
+using LogicaNegocio.ExcepcionesEntidades;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using WebAPI.Autenticacion;
+
+namespace WebAPI.Controllers
+{
+	[Route("api/[controller]")]
+	[ApiController]
+	public class UsuarioController : ControllerBase
+	{
+		public ILoginUsuario CULogin { get; set; }
+
+		public IModificarPassword CUPassword { get; set; }
+		public UsuarioController(ILoginUsuario cULogin, IModificarPassword cUPassword)
+		{
+			CULogin = cULogin;
+			CUPassword = cUPassword;
+		}
+		[HttpPost]
+		public IActionResult Login(UsuarioDTO usuarioDTO)
+		{
+			try
+			{
+				if(usuarioDTO == null)
+				{
+					return BadRequest("Datos Incorrectos");
+				}
+				UsuarioLogueadoDTO usuarioLogueado = CULogin.Ejecutar(usuarioDTO);
+				if(usuarioLogueado != null)
+				{
+					usuarioLogueado.Token = ManejadorToken.CrearToken(usuarioLogueado);
+					return Ok(usuarioLogueado);
+				}
+				else
+				{
+					return BadRequest("Usuario o contraseña incorrectos");
+				}
+			}
+			catch (UsuarioException ex)
+			{
+
+				return NotFound(ex.Message);
+			}
+			catch(Exception ex)
+			{
+				return StatusCode(500, ex.Message);
+			}
+		}
+		[Authorize(Roles = "Cliente")]
+        [HttpPut]
+		public IActionResult CambiarPassword(CambioPasswordDTO dto)
+		{
+			try
+			{
+				if(dto == null)
+				{
+					return BadRequest("Datos Incorrectos");
+				}
+				CUPassword.Ejecutar(dto);
+				return Ok("Contraseña cambiada correctamente");
+				
+			}
+			catch (UsuarioException ex)
+			{
+
+				return BadRequest(ex.Message);
+			}
+			catch(Exception ex)
+			{
+				return StatusCode(500, "Error");
+			}
+		}
+	}
+}
+
+***********************************
 Archivo: WeatherForecastController.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\WebAPI\Controllers\WeatherForecastController.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\WebAPI\Controllers\WeatherForecastController.cs
 ***********************************
 using Microsoft.AspNetCore.Mvc;
 
@@ -3109,8 +2511,53 @@ namespace WebAPI.Controllers
 }
 
 ***********************************
+Archivo: ManejadorToken.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\WebAPI\JWT\ManejadorToken.cs
+***********************************
+using Compartido.DTOs.Usuario;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+namespace WebAPI.Autenticacion
+{
+	public class ManejadorToken
+	{
+		internal static string CrearToken(UsuarioLogueadoDTO dtoUsuario)
+		{
+
+			byte[] clave = Encoding.ASCII.GetBytes("ZWRpw6fDo28gZW0gY29tcHV0YWRvcmE=");
+
+			JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+
+			//clave secreta, generalmente se incluye en el archivo de configuración
+			//Debe ser un vector de bytes         
+
+			//Se incluye un claim para el email
+			SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+			{
+				Subject = new ClaimsIdentity(new Claim[]
+				{
+					new Claim(ClaimTypes.Email, dtoUsuario.Email),
+					new Claim(ClaimTypes.Role, dtoUsuario.Rol),
+
+				}),
+				Expires = DateTime.UtcNow.AddMinutes(30),
+				SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(clave),
+				SecurityAlgorithms.HmacSha256Signature)
+			};
+
+			var token = tokenHandler.CreateToken(tokenDescriptor);
+
+			return tokenHandler.WriteToken(token);
+		}
+	}
+}
+
+***********************************
 Archivo: ListadoAgenciasDTO.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Agencia\ListadoAgenciasDTO.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Agencia\ListadoAgenciasDTO.cs
 ***********************************
 using LogicaNegocio.EntidadesNegocio;
 using System;
@@ -3126,13 +2573,14 @@ namespace Compartido.DTOs.Agencia
 		public int Id { get; set; }
 		public string Nombre { get; set; }
 		public string DireccionPostal { get; set; }
-		public Ubicacion Ubicacion { get; set; }
+
+		public Ubicacion Ubicacion { get; set; }	
 	}
 }
 
 ***********************************
 Archivo: AltaEnvioComunDTO.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Envios\AltaEnvioComunDTO.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Envios\AltaEnvioComunDTO.cs
 ***********************************
 using LogicaNegocio.EntidadesNegocio;
 using System;
@@ -3151,12 +2599,13 @@ namespace Compartido.DTOs.Envios
 		public int ClienteId { get; set; }
 		public int AgenciaId { get; set; }
 		public Estado Estado { get; set; }
+		public DateTime FechaEstimada { get; set; }
 	}
 }
 
 ***********************************
 Archivo: AltaEnvioUrgenteDTO.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Envios\AltaEnvioUrgenteDTO.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Envios\AltaEnvioUrgenteDTO.cs
 ***********************************
 using LogicaNegocio.EntidadesNegocio;
 using System;
@@ -3177,13 +2626,15 @@ namespace Compartido.DTOs.Envios
 		public bool Entregado { get; set; }
 		public int TiempoEntrega { get; set; }
 		public Estado Estado { get; set; }
+		public DateTime FechaEstimada { get; set; }
 	}
 }
 
 ***********************************
 Archivo: ListadoEnviosDTO.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Envios\ListadoEnviosDTO.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Envios\ListadoEnviosDTO.cs
 ***********************************
+using Compartido.DTOs.Seguimiento;
 using LogicaNegocio.EntidadesNegocio;
 using System;
 using System.Collections.Generic;
@@ -3201,14 +2652,15 @@ namespace Compartido.DTOs.Envios
 		public string FuncionarioNombre { get; set; }
 		public string ClienteNombre { get; set; }
 		public Estado Estado { get; set; }
-
 		public DateTime FechaEntrega { get; set; }
+		public DateTime? FechaEstimada { get; set; }
+		public List<SeguimientoDTO> Seguimientos { get; set; }
 	}
 }
 
 ***********************************
 Archivo: SeguimientoDTO.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Seguimiento\SeguimientoDTO.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Seguimiento\SeguimientoDTO.cs
 ***********************************
 using LogicaNegocio.EntidadesNegocio;
 using System;
@@ -3229,9 +2681,31 @@ namespace Compartido.DTOs.Seguimiento
 }
 
 ***********************************
-Archivo: ListadoUsuariosDTO.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Usuario\ListadoUsuariosDTO.cs
+Archivo: CambioPasswordDTO.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Usuario\CambioPasswordDTO.cs
 ***********************************
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Compartido.DTOs.Usuario
+{
+   public class CambioPasswordDTO
+    {
+        public string Email { get; set; }
+
+        public string PasswordActual { get; set; }
+        public string PasswordNueva { get; set; }
+    }
+}
+
+***********************************
+Archivo: ListadoUsuariosDTO.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Usuario\ListadoUsuariosDTO.cs
+***********************************
+using LogicaNegocio.EntidadesNegocio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3256,8 +2730,9 @@ namespace Compartido.DTOs.Usuario
 
 ***********************************
 Archivo: UsuarioDTO.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Usuario\UsuarioDTO.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Usuario\UsuarioDTO.cs
 ***********************************
+using LogicaNegocio.EntidadesNegocio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3268,27 +2743,40 @@ namespace Compartido.DTOs.Usuario
 {
 	public class UsuarioDTO
 	{
-		public int Id { get; set; }
-		public string Ci { get; set; }
-		public string Nombre { get; set; }
-		public string Apellido { get; set; }
+
 		public string Email { get; set; }
-		public string Contraseña { get; set; }
-		public Rol Rol { get; set; }
+
+		public string Password { get; set; }
 	}
 
 	
-	public enum Rol
+	
+}
+
+***********************************
+Archivo: UsuarioLogueadoDTO.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\Compartido\DTOs\Usuario\UsuarioLogueadoDTO.cs
+***********************************
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Compartido.DTOs.Usuario
+{
+	public class UsuarioLogueadoDTO
 	{
-		Administrador,
-		Funcionario,
-		Cliente
+		public string Token { get; set; }
+		public string Rol { get; set; }
+		public string Email { get; set; }
+		public int Id { get; set; }
 	}
 }
 
 ***********************************
 Archivo: ListadoAgencia.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\AgenciaCU\ListadoAgencia.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\AgenciaCU\ListadoAgencia.cs
 ***********************************
 using Compartido.DTOs.Agencia;
 using Compartido.Mappers;
@@ -3319,14 +2807,13 @@ namespace LogicaAplicacion.ImplementacionCasosUso.AgenciaCU
 			IEnumerable<Agencia> agencias = RepoAgencia.FindAll().ToList();
 			agenciasDTO = AgenciaMapper.ListadoAgenciaToListadoAgenciaDTO(agencias);
 			return agenciasDTO;
-
 		}
 	}
 }
 
 ***********************************
 Archivo: AgregarSeguimiento.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\AgregarSeguimiento.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\AgregarSeguimiento.cs
 ***********************************
 using Compartido.DTOs.Seguimiento;
 using Compartido.Mappers;
@@ -3380,7 +2867,7 @@ namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
 
 ***********************************
 Archivo: AltaEnvioComun.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\AltaEnvioComun.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\AltaEnvioComun.cs
 ***********************************
 using Compartido.DTOs.Envios;
 using Compartido.Mappers;
@@ -3435,7 +2922,7 @@ namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
 
 ***********************************
 Archivo: AltaEnvioUrgente.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\AltaEnvioUrgente.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\AltaEnvioUrgente.cs
 ***********************************
 using Compartido.DTOs.Envios;
 using Compartido.Mappers;
@@ -3487,7 +2974,7 @@ namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
 
 ***********************************
 Archivo: BuscarEnvios.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\BuscarEnvios.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\BuscarEnvios.cs
 ***********************************
 using Compartido.DTOs.Envios;
 using Compartido.Mappers;
@@ -3521,7 +3008,7 @@ namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
 
 ***********************************
 Archivo: FinalizarEnvio.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\FinalizarEnvio.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\FinalizarEnvio.cs
 ***********************************
 using LogicaAplicacion.InterfacesCasosUso.EnvioCU;
 using LogicaNegocio.EntidadesNegocio;
@@ -3542,17 +3029,16 @@ namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
 			RepoEnvio = repoEnvio;
 		}
 
-		public void Ejecutar(string nroTracking)
+		public void Ejecutar(string NroTracking)
 		{
-			if (string.IsNullOrEmpty(nroTracking))
+			if (string.IsNullOrEmpty(NroTracking))
 			{
 				throw new ArgumentNullException("Datos incorrectos");
 			}
-			Envio envio = RepoEnvio.FindByNroTracking(nroTracking);
+			Envio envio = RepoEnvio.FindByNroTracking(NroTracking);
 			if (envio != null)
 			{
 				RepoEnvio.FinalizarEnvio(envio.NroTracking);
-				RepoEnvio.Update(envio);
 			}
 			else
 			{
@@ -3565,7 +3051,7 @@ namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
 
 ***********************************
 Archivo: ListadoEnvios.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\ListadoEnvios.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\ListadoEnvios.cs
 ***********************************
 using Compartido.DTOs.Envios;
 using Compartido.Mappers;
@@ -3602,8 +3088,151 @@ namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
 }
 
 ***********************************
+Archivo: ListadoEnviosClienteLogueado.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\ListadoEnviosClienteLogueado.cs
+***********************************
+using Compartido.DTOs.Envios;
+using Compartido.Mappers;
+using LogicaAplicacion.InterfacesCasosUso.EnvioCU;
+using LogicaNegocio.EntidadesNegocio;
+using LogicaNegocio.InterfacesRepositorios;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
+{
+	public class ListadoEnviosClienteLogueado :IListadoEnviosClienteLogueado
+	{
+		private IRepositorioEnvio RepoEnvio { get; set; }
+		public ListadoEnviosClienteLogueado(IRepositorioEnvio repoenvio)
+		{
+			RepoEnvio = repoenvio;
+		}
+		public IEnumerable<ListadoEnviosDTO> Ejecutar(int clienteId)
+		{
+			IEnumerable<ListadoEnviosDTO> enviosDTO = new List<ListadoEnviosDTO>();
+			IEnumerable<Envio> envios = RepoEnvio.FindByCliente(clienteId);
+			enviosDTO = EnvioMapper.ListadoEnvioToListadoEnvioDTO(envios);
+			return enviosDTO;
+
+		}
+	}
+}
+
+***********************************
+Archivo: ListadoEnviosxComentario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\ListadoEnviosxComentario.cs
+***********************************
+using Compartido.DTOs.Envios;
+using Compartido.Mappers;
+using LogicaAplicacion.InterfacesCasosUso.EnvioCU;
+using LogicaNegocio.EntidadesNegocio;
+using LogicaNegocio.InterfacesRepositorios;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
+{
+	public class ListadoEnviosxComentario : IListadoEnviosxComentario
+	{
+		private IRepositorioEnvio RepoEnvio { get; set; }
+		public ListadoEnviosxComentario(IRepositorioEnvio repoEnvio)
+		{
+			RepoEnvio = repoEnvio;
+		}
+		public IEnumerable<ListadoEnviosDTO> Ejecutar(string comentario, int clienteId)
+		{
+	
+			IEnumerable<ListadoEnviosDTO> listadoEnviosDTO = new List<ListadoEnviosDTO>();
+			IEnumerable<Envio> envios = RepoEnvio.FindByComentario(comentario, clienteId);
+			listadoEnviosDTO = EnvioMapper.ListadoEnvioToListadoEnvioDTO(envios);
+			return listadoEnviosDTO;
+
+
+		}
+	}
+}
+
+***********************************
+Archivo: ListadoEnviosxFecha.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\EnvioCU\ListadoEnviosxFecha.cs
+***********************************
+using Compartido.DTOs.Envios;
+using Compartido.Mappers;
+using LogicaAplicacion.InterfacesCasosUso.EnvioCU;
+using LogicaNegocio.EntidadesNegocio;
+using LogicaNegocio.InterfacesRepositorios;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
+{
+	public class ListadoEnviosxFecha : IListadoEnviosxFecha
+	{
+		private IRepositorioEnvio RepoEnvio { get; set; }
+		public ListadoEnviosxFecha(IRepositorioEnvio repositorioEnvio)
+		{
+			RepoEnvio = repositorioEnvio;
+		}
+		public IEnumerable<ListadoEnviosDTO> Ejecutar(DateTime fechaInicio, DateTime fechaFin , int clienteId, Estado? estado)
+		{
+			
+			IEnumerable<ListadoEnviosDTO> listadoEnviosDTO = new List<ListadoEnviosDTO>();
+			IEnumerable<Envio> envios = RepoEnvio.FindByFechas(fechaInicio, fechaFin, clienteId, estado);
+			listadoEnviosDTO = EnvioMapper.ListadoEnvioToListadoEnvioDTO(envios);
+			return listadoEnviosDTO;
+		}
+
+	}
+}
+
+***********************************
+Archivo: ListadoSeguimientosCU.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\SeguimientoCU\ListadoSeguimientosCU.cs
+***********************************
+using Compartido.DTOs.Seguimiento;
+using Compartido.Mappers;
+using LogicaAplicacion.InterfacesCasosUso.SeguimientoCU;
+using LogicaNegocio.EntidadesNegocio;
+using LogicaNegocio.InterfacesRepositorios;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaAplicacion.ImplementacionCasosUso.SeguimientoCU
+{
+	public class ListadoSeguimientosCU : IListadoSeguimientos
+	{
+		private IRepositorioSeguimiento RepositorioSeguimiento { get; set; }
+		public ListadoSeguimientosCU(IRepositorioSeguimiento repositorioSeguimiento)
+		{
+			RepositorioSeguimiento = repositorioSeguimiento;
+		}
+		public IEnumerable<SeguimientoDTO> Ejecutar(int envioId)
+		{
+			IEnumerable<SeguimientoDTO> seguimientosDTO = new List<SeguimientoDTO>();
+			IEnumerable<Seguimiento> seguimientos = RepositorioSeguimiento.FindByEnvioId(envioId);
+			seguimientosDTO = SeguimientoMapper.ListadoSeguimientoToListadoSeguimientoDTO(seguimientos);
+			return seguimientosDTO;
+
+		}
+	}
+}
+
+***********************************
 Archivo: BuscarUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\BuscarUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\BuscarUsuario.cs
 ***********************************
 using Compartido.DTOs.Usuario;
 using Compartido.Mappers;
@@ -3634,7 +3263,7 @@ namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
 
 ***********************************
 Archivo: EliminarUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\EliminarUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\EliminarUsuario.cs
 ***********************************
 using LogicaAplicacion.InterfacesCasosUso.UsuarioCU;
 using LogicaNegocio.InterfacesRepositorios;
@@ -3664,7 +3293,7 @@ namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
 
 ***********************************
 Archivo: ListadoClientes.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\ListadoClientes.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\ListadoClientes.cs
 ***********************************
 using Compartido.DTOs.Usuario;
 using Compartido.Mappers;
@@ -3703,7 +3332,7 @@ namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
 
 ***********************************
 Archivo: ListadoUsuarios.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\ListadoUsuarios.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\ListadoUsuarios.cs
 ***********************************
 using Compartido.Mappers;
 using LogicaNegocio.EntidadesNegocio;
@@ -3741,7 +3370,7 @@ namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
 
 ***********************************
 Archivo: LoginUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\LoginUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\LoginUsuario.cs
 ***********************************
 using Compartido.DTOs.Usuario;
 using Compartido.Mappers;
@@ -3765,28 +3394,67 @@ namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
 		{
 			RepoUsuario = repoUsuario;
 		}
-		public UsuarioDTO Ejecutar(string Email, string contraseña)
+
+		public UsuarioLogueadoDTO Ejecutar(UsuarioDTO usuariodto)
 		{
-			if(string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(contraseña))
+			Usuario usuario = RepoUsuario.FindByEmailAndPassword(usuariodto.Email, usuariodto.Password);
+			if (usuario == null)
 			{
-				throw new ArgumentNullException("Email y Contraseña son requeridos");
+				throw new UsuarioException("Usuario o contraseña incorrectos");
 			}
-
-			Usuario usuario = RepoUsuario.FindByEmail(Email);
-			if(usuario == null)
-			{
-				throw new UsuarioException("Usuario no encontrado");
-			}
-
-			return UsuarioMapper.UsuarioToUsuarioDTO(usuario);
+			return UsuarioMapper.UsuarioToUsuarioLogueadoDTO(usuario);
 		}
-
 	}
 }
 
 ***********************************
+Archivo: ModificarPassword.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\ModificarPassword.cs
+***********************************
+using Compartido.DTOs.Usuario;
+using LogicaAplicacion.InterfacesCasosUso.UsuarioCU;
+using LogicaNegocio.EntidadesNegocio;
+using LogicaNegocio.ExcepcionesEntidades;
+using LogicaNegocio.InterfacesRepositorios;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
+{
+    public class ModificarPassword : IModificarPassword
+    {
+        private IRepositorioUsuario RepoUsuario { get; set; }
+
+        public ModificarPassword(IRepositorioUsuario repoUsuario)
+        {
+            RepoUsuario=repoUsuario;
+        }
+
+        public void Ejecutar(CambioPasswordDTO dto)
+        {
+            Usuario userBuscado = RepoUsuario.FindByEmail(dto.Email);
+            if(userBuscado == null)
+            {
+                throw new UsuarioException("Datos Incorrectos"); 
+            }
+            if(userBuscado.Contraseña != dto.PasswordActual)
+            {
+                throw new UsuarioException("Contraseña Invalida"); 
+            }
+            userBuscado.Contraseña = dto.PasswordNueva;
+
+            RepoUsuario.Update(userBuscado);
+
+        }
+    }
+}
+
+***********************************
 Archivo: ModificarUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\ModificarUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\ModificarUsuario.cs
 ***********************************
 using Compartido.DTOs.Usuario;
 using Compartido.Mappers;
@@ -3821,7 +3489,7 @@ namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
 
 ***********************************
 Archivo: RegistroUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\RegistroUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\ImplementacionCasosUso\UsuarioCU\RegistroUsuario.cs
 ***********************************
 using Compartido.Mappers;
 using LogicaAplicacion.InterfacesCasosUso.UsuarioCU;
@@ -3834,32 +3502,32 @@ using System.Threading.Tasks;
 using LogicaNegocio.EntidadesNegocio;
 using Compartido.DTOs.Usuario;
 
-namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
-{
-	public class RegistroUsuario : IRegistrarUsuario
-	{
-		private IRepositorioUsuario RepoUsuario { get; set; }
+//namespace LogicaAplicacion.ImplementacionCasosUso.UsuarioCU
+//{
+//	//public class RegistroUsuario : IRegistrarUsuario
+//	//{
+//	//	private IRepositorioUsuario RepoUsuario { get; set; }
 
-		public RegistroUsuario(IRepositorioUsuario repoUsuario)
-		{
-			RepoUsuario = repoUsuario;
-		}
+//	//	public RegistroUsuario(IRepositorioUsuario repoUsuario)
+//	//	{
+//	//		RepoUsuario = repoUsuario;
+//	//	}
 
-		public void Ejecutar(UsuarioDTO usuarioDTO)
-		{
-			if (usuarioDTO == null)
-			{
-				throw new ArgumentNullException("Datos Incorrectos");
-			}
-			Usuario usuario = UsuarioMapper.UsuarioFromUsuarioDTO(usuarioDTO);
-			RepoUsuario.Add(usuario);
-		}
-	}
-}
+//		//public void Ejecutar(UsuarioDTO usuarioDTO)
+//		//{
+//		//	if (usuarioDTO == null)
+//		//	{
+//		//		throw new ArgumentNullException("Datos Incorrectos");
+//		//	}
+//		//	Usuario usuario = UsuarioMapper.UsuarioFromUsuarioDTO(usuarioDTO);
+//		//	RepoUsuario.Add(usuario);
+//		//}
+//	}
+//}
 
 ***********************************
 Archivo: IListadoAgencias.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\AgenciaCU\IListadoAgencias.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\AgenciaCU\IListadoAgencias.cs
 ***********************************
 using Compartido.DTOs.Agencia;
 using System;
@@ -3878,7 +3546,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.AgenciaCU
 
 ***********************************
 Archivo: IAgregarSeguimiento.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IAgregarSeguimiento.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IAgregarSeguimiento.cs
 ***********************************
 using Compartido.DTOs.Seguimiento;
 using System;
@@ -3897,7 +3565,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.EnvioCU
 
 ***********************************
 Archivo: IAltaEnvioComun.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IAltaEnvioComun.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IAltaEnvioComun.cs
 ***********************************
 using Compartido.DTOs.Envios;
 using System;
@@ -3916,7 +3584,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.EnvioCU
 
 ***********************************
 Archivo: IAltaEnvioUrgente.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IAltaEnvioUrgente.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IAltaEnvioUrgente.cs
 ***********************************
 using Compartido.DTOs.Envios;
 using System;
@@ -3935,7 +3603,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.EnvioCU
 
 ***********************************
 Archivo: IBuscarEnvios.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IBuscarEnvios.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IBuscarEnvios.cs
 ***********************************
 using Compartido.DTOs.Envios;
 using System;
@@ -3954,7 +3622,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.EnvioCU
 
 ***********************************
 Archivo: IFinalizarEnvio.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IFinalizarEnvio.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IFinalizarEnvio.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -3972,7 +3640,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.EnvioCU
 
 ***********************************
 Archivo: IListadoEnvios.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IListadoEnvios.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IListadoEnvios.cs
 ***********************************
 using Compartido.DTOs.Envios;
 using System;
@@ -3990,8 +3658,87 @@ namespace LogicaAplicacion.InterfacesCasosUso.EnvioCU
 }
 
 ***********************************
+Archivo: IListadoEnviosClienteLogueado.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IListadoEnviosClienteLogueado.cs
+***********************************
+using Compartido.DTOs.Envios;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaAplicacion.InterfacesCasosUso.EnvioCU
+{
+	public interface IListadoEnviosClienteLogueado
+	{
+		IEnumerable<ListadoEnviosDTO> Ejecutar(int clienteId);
+	}
+}
+
+***********************************
+Archivo: IListadoEnviosxComentario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IListadoEnviosxComentario.cs
+***********************************
+using Compartido.DTOs.Envios;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaAplicacion.InterfacesCasosUso.EnvioCU
+{
+	public interface IListadoEnviosxComentario
+	{
+		IEnumerable<ListadoEnviosDTO> Ejecutar(string comentario, int clienteId);
+	}
+}
+
+***********************************
+Archivo: IListadoEnviosxFecha.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\EnvioCU\IListadoEnviosxFecha.cs
+***********************************
+using Compartido.DTOs.Envios;
+using LogicaNegocio.EntidadesNegocio;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaAplicacion.InterfacesCasosUso.EnvioCU
+{
+	public interface IListadoEnviosxFecha
+	{
+		IEnumerable<ListadoEnviosDTO> Ejecutar(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado? estado);
+
+	}
+}
+
+***********************************
+Archivo: IListadoSeguimientos.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\SeguimientoCU\IListadoSeguimientos.cs
+***********************************
+using Compartido.DTOs.Seguimiento;
+using LogicaNegocio.EntidadesNegocio;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaAplicacion.InterfacesCasosUso.SeguimientoCU
+{
+	public interface IListadoSeguimientos
+	{
+		IEnumerable<SeguimientoDTO> Ejecutar(int envioId);
+	}
+}
+
+***********************************
 Archivo: IBuscarUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IBuscarUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IBuscarUsuario.cs
 ***********************************
 using Compartido.DTOs.Usuario;
 using System;
@@ -4010,7 +3757,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.UsuarioCU
 
 ***********************************
 Archivo: IEliminarUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IEliminarUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IEliminarUsuario.cs
 ***********************************
 using System;
 using System.Collections.Generic;
@@ -4028,7 +3775,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.UsuarioCU
 
 ***********************************
 Archivo: IListadoCliente.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IListadoCliente.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IListadoCliente.cs
 ***********************************
 using Compartido.DTOs.Usuario;
 using System;
@@ -4047,7 +3794,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.UsuarioCU
 
 ***********************************
 Archivo: IListadoUsuarios.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IListadoUsuarios.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IListadoUsuarios.cs
 ***********************************
 using Compartido.DTOs.Usuario;
 using System;
@@ -4066,7 +3813,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.UsuarioCU
 
 ***********************************
 Archivo: ILoginUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\ILoginUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\ILoginUsuario.cs
 ***********************************
 using Compartido.DTOs.Usuario;
 using System;
@@ -4079,13 +3826,32 @@ namespace LogicaAplicacion.InterfacesCasosUso.UsuarioCU
 {
 	public interface ILoginUsuario
 	{
-		UsuarioDTO Ejecutar(string Email, string Contraseña);
+		UsuarioLogueadoDTO Ejecutar(UsuarioDTO usuariodto);
 	}
 }
 
 ***********************************
+Archivo: IModificarPassword.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IModificarPassword.cs
+***********************************
+using Compartido.DTOs.Usuario;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LogicaAplicacion.InterfacesCasosUso.UsuarioCU
+{
+    public interface IModificarPassword
+    {
+        void Ejecutar(CambioPasswordDTO dto);
+    }
+}
+
+***********************************
 Archivo: IModificarUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IModificarUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IModificarUsuario.cs
 ***********************************
 using Compartido.DTOs.Usuario;
 using System;
@@ -4104,7 +3870,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.UsuarioCU
 
 ***********************************
 Archivo: IRegistrarUsuario.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IRegistrarUsuario.cs
+Carpeta: C:\Users\ismad\Desktop\Prog-P3-2025-1\Prog-P3-2025-1\333473--308898\LogicaAplicacion\InterfacesCasosUso\UsuarioCU\IRegistrarUsuario.cs
 ***********************************
 using Compartido.DTOs.Usuario;
 using System;
@@ -4118,189 +3884,5 @@ namespace LogicaAplicacion.InterfacesCasosUso.UsuarioCU
 	public interface IRegistrarUsuario
 	{
 		void Ejecutar(UsuarioDTO usuarioDTO);
-	}
-}
-
-***********************************
-Archivo: AgenciaViewModel.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Models\Agencias\AgenciaViewModel.cs
-***********************************
-using LogicaNegocio.EntidadesNegocio;
-
-namespace MVC.Models.Agencias
-{
-	public class AgenciaViewModel
-	{
-		public int Id { get; set; }
-		public string Nombre { get; set; }
-		public string DireccionPostal { get; set; }
-		public Ubicacion Ubicacion { get; set; }
-	}
-}
-
-***********************************
-Archivo: AgregarSeguimientoVM.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Models\Envios\AgregarSeguimientoVM.cs
-***********************************
-namespace MVC.Models.Envios
-{
-	public class AgregarSeguimientoVM
-	{
-		public string Comentario { get; set; }
-		public DateTime FechaHora { get; set; }
-		public int EnvioId { get; set; }
-		public int UsuarioId { get; set; }
-	}
-}
-
-***********************************
-Archivo: AltaEnvioComunVM.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Models\Envios\AltaEnvioComunVM.cs
-***********************************
-using LogicaNegocio.EntidadesNegocio;
-using MVC.Models.Usuarios;
-using MVC.Models.Agencias;
-
-namespace MVC.Models.Envios
-{
-	public class AltaEnvioComunVM
-	{
-		public string NumeroTracking { get; set; }
-		public int Peso { get; set; }
-		public int FuncionarioId { get; set; }
-		public int ClienteId { get; set; }
-		public int AgenciaId { get; set; }
-		public Estado Estado { get; set; }
-
-		public IEnumerable<UsuarioViewModel> Usuarios { get; set; }
-			= new List<UsuarioViewModel>();
-
-			public IEnumerable<ClienteViewModel> Cliente { get; set; } 
-			= new List<ClienteViewModel>();
-		public IEnumerable<AgenciaViewModel> Agencia { get; set; }
-			= new List<AgenciaViewModel>();
-	}
-}
-
-***********************************
-Archivo: AltaEnvioUrgenteVM.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Models\Envios\AltaEnvioUrgenteVM.cs
-***********************************
-using LogicaNegocio.EntidadesNegocio;
-using MVC.Models.Usuarios;
-
-namespace MVC.Models.Envios
-{
-	public class AltaEnvioUrgenteVM
-	{
-		public string NumeroTracking { get; set; }
-		public int Peso { get; set; }
-		public int FuncionarioId { get; set; }
-		public int ClienteId { get; set; }
-		public string DireccionPostal { get; set; }
-		public bool Entregado { get; set; }
-		public int TiempoEntrega { get; set; }
-		public Estado Estado { get; set; }
-
-		public IEnumerable<UsuarioViewModel> Usuarios { get; set; }
-			 = new List<UsuarioViewModel>();
-
-		public IEnumerable<ClienteViewModel> Cliente { get; set; }
-		= new List<ClienteViewModel>();
-	}
-}
-
-***********************************
-Archivo: ListadoEnviosVM.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Models\Envios\ListadoEnviosVM.cs
-***********************************
-using LogicaNegocio.EntidadesNegocio;
-
-namespace MVC.Models.Envios
-{
-	public class ListadoEnviosVM
-	{
-		public int Id { get; set; }
-		public int Peso { get; set; }
-		public string FuncionarioNombre { get; set; }
-		public string ClienteNombre { get; set; }
-		public Estado Estado { get; set; }
-
-		public DateTime FechaEntrega { get; set; }
-	}
-}
-
-***********************************
-Archivo: ClienteViewModel.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Models\Usuarios\ClienteViewModel.cs
-***********************************
-namespace MVC.Models.Usuarios
-{
-	public class ClienteViewModel
-	{
-		public int Id { get; set; }
-		public string Ci { get; set; }
-		public string Nombre { get; set; }
-		public string Apellido { get; set; }
-		public string Email { get; set; }
-		public string Contraseña { get; set; }
-		public Rol Rol { get; set; }
-	}
-}
-
-***********************************
-Archivo: ListadoUsuariosViewModel.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Models\Usuarios\ListadoUsuariosViewModel.cs
-***********************************
-namespace MVC.Models.Usuarios
-{
-	public class ListadoUsuariosViewModel
-	{
-		public int Id { get; set; }
-		public string Ci { get; set; }
-		public string Nombre { get; set; }
-		public string Apellido { get; set; }
-		public string Email { get; set; }
-		public string Contraseña { get; set; }
-
-		public Rol Rol;
-	}
-
-	public enum Rol
-	{
-		Administrador,
-		Funcionario,
-		Cliente,
-	}
-}
-
-***********************************
-Archivo: LoginViewModel.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Models\Usuarios\LoginViewModel.cs
-***********************************
-namespace MVC.Models.Usuarios
-{
-	public class LoginViewModel
-	{
-		public string Email { get; set; }
-		public string Contraseña { get; set; }
-	}
-}
-
-***********************************
-Archivo: UsuarioViewModel.cs
-Carpeta: C:\Users\ismad\source\repos\Prog-P3-2025-1\333473--308898\MVC\Models\Usuarios\UsuarioViewModel.cs
-***********************************
-namespace MVC.Models.Usuarios
-{
-	public class UsuarioViewModel
-	{
-		public int Id { get; set; }
-		public string Ci {  get; set; }
-		public string Nombre { get; set; }
-		public string Apellido { get; set; }
-		public string Email { get; set; }
-		public string Contraseña { get; set; }
-		public Rol Rol { get; set; }
 	}
 }
