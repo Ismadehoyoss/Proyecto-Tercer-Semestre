@@ -95,20 +95,22 @@ namespace LogicaAccesoDatos.Repositorios
 			return Contexto.Envios.Where(e => e.ClienteId == clienteId).OrderByDescending(e => e.FechaEntrega).Include(e => e.Funcionario).Include(e => e.Cliente).ToList();
 		}
 
-		public IEnumerable<Envio> FindByFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado estado)
-		{
-			return Contexto.Envios
-				.Where(e => (e.FechaEstimada ?? DateTime.MaxValue) >= fechaInicio
-							&& (e.FechaEstimada ?? DateTime.MinValue) <= fechaFin
-							&& e.ClienteId == clienteId
-							&& (e.Estado == estado))
-				.OrderByDescending(e => e.NroTracking)
-				.Include(e => e.Funcionario)
-				.Include(e => e.Cliente)
-				.ToList();
-		}
+        public IEnumerable<Envio> FindByFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado? estado)
+        {
+            return Contexto.Envios
+                .Where(e =>
+                    (e.FechaEstimada ?? DateTime.MaxValue) >= fechaInicio &&
+                    (e.FechaEstimada ?? DateTime.MinValue) <= fechaFin &&
+                    e.ClienteId == clienteId &&
+                    (estado == null || e.Estado == estado)
+                )
+                .OrderByDescending(e => e.NroTracking)
+                .Include(e => e.Funcionario)
+                .Include(e => e.Cliente)
+                .ToList();
+        }
 
-		public IEnumerable<Envio> FindByComentario(string comentario, int clienteId)
+        public IEnumerable<Envio> FindByComentario(string comentario, int clienteId)
 		{
 			return Contexto.Envios
 				.Include(e => e.Seguimientos) 

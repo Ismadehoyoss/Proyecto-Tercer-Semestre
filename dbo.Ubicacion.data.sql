@@ -1,0 +1,10 @@
+﻿INSERT INTO Ubicacion (Latitud, Longitud) VALUES (34.9011, -56.1645);
+INSERT INTO Ubicacion (Latitud, Longitud) VALUES (32.5228, -55.7658);
+INSERT INTO Ubicacion (Latitud, Longitud) VALUES (-34.7951, -55.9832);
+INSERT INTO Ubicacion (Latitud, Longitud) VALUES (-30.9101, -55.5508);
+INSERT INTO Ubicacion (Latitud, Longitud) VALUES (-33.1067, -58.2956);
+INSERT INTO Ubicacion (Latitud, Longitud) VALUES (-31.3850, -57.9685);
+INSERT INTO Ubicacion (Latitud, Longitud) VALUES (-34.3491, -56.7135);
+INSERT INTO Ubicacion (Latitud, Longitud) VALUES (-33.2432, -54.3709);
+INSERT INTO Ubicacion (Latitud, Longitud) VALUES (-32.3675, -54.1675);
+INSERT INTO Ubicacion (Latitud, Longitud) VALUES (-34.4389, -54.3331);

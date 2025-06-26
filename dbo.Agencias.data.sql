@@ -1,0 +1,10 @@
+﻿INSERT INTO Agencias (Nombre, DireccionPostal, UbicacionId) VALUES ('Agencia Centro', 'Av. 18 de Julio 1234', 1);
+INSERT INTO Agencias (Nombre, DireccionPostal, UbicacionId) VALUES ('Agencia Florida', 'Ruta 5 Km 90', 2);
+INSERT INTO Agencias (Nombre, DireccionPostal, UbicacionId) VALUES ('Agencia Canelones', 'Av. Roosevelt 456', 3);
+INSERT INTO Agencias (Nombre, DireccionPostal, UbicacionId) VALUES ('Agencia Rivera', 'Sarandí 789', 4);
+INSERT INTO Agencias (Nombre, DireccionPostal, UbicacionId) VALUES ('Agencia Mercedes', 'Colón 321', 5);
+INSERT INTO Agencias (Nombre, DireccionPostal, UbicacionId) VALUES ('Agencia Salto', 'Av. Barbieri 654', 6);
+INSERT INTO Agencias (Nombre, DireccionPostal, UbicacionId) VALUES ('Agencia San José', 'Treinta y Tres 987', 7);
+INSERT INTO Agencias (Nombre, DireccionPostal, UbicacionId) VALUES ('Agencia Melo', 'Gral. Artigas 111', 8);
+INSERT INTO Agencias (Nombre, DireccionPostal, UbicacionId) VALUES ('Agencia Tacuarembó', '25 de Agosto 222', 9);
+INSERT INTO Agencias (Nombre, DireccionPostal, UbicacionId) VALUES ('Agencia Este', 'Calle 20 333', 10);

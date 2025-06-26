@@ -10,7 +10,7 @@ namespace LogicaAplicacion.InterfacesCasosUso.EnvioCU
 {
 	public interface IListadoEnviosxFecha
 	{
-		IEnumerable<ListadoEnviosDTO> Ejecutar(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado estado);
+		IEnumerable<ListadoEnviosDTO> Ejecutar(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado? estado);
 
 	}
 }

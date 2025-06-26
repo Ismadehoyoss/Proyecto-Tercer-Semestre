@@ -1,4 +1,5 @@
-﻿using Compartido.DTOs.Envios;
+﻿using System.Diagnostics;
+using Compartido.DTOs.Envios;
 using LogicaAplicacion.InterfacesCasosUso.EnvioCU;
 using LogicaNegocio.EntidadesNegocio;
 using Microsoft.AspNetCore.Authorization;
@@ -89,9 +90,10 @@ namespace WebAPI.Controllers
 		}
 		[Authorize(Roles = "Cliente")]
 		[HttpGet("porFechas")]
-		public IActionResult GetEnviosPorFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado estado)
+		public IActionResult GetEnviosPorFechas(DateTime fechaInicio, DateTime fechaFin, int clienteId, Estado? estado)
 		{
-			try
+            Debug.WriteLine($"Estado recibido: {estado}");
+            try
 			{
 				if (fechaInicio == DateTime.MinValue || fechaFin == DateTime.MinValue)
 					return BadRequest("Las fechas no pueden estar vacías.");
@@ -99,10 +101,9 @@ namespace WebAPI.Controllers
 				if (fechaInicio > fechaFin)
 					return BadRequest("La fecha de inicio no puede ser mayor que la fecha de fin.");
 
-				// Ejecutar consulta filtrando por fechas y cliente
-				List<ListadoEnviosDTO> envios = CUlistadoxFechas.Ejecutar(fechaInicio, fechaFin, clienteId,estado).ToList();
+                List<ListadoEnviosDTO> envios = CUlistadoxFechas.Ejecutar(fechaInicio, fechaFin, clienteId, estado).ToList();
 
-				if (envios == null || envios.Count == 0)
+                if (envios == null || envios.Count == 0)
 					return NotFound("No se encontraron envíos en el rango de fechas para este cliente.");
 
 				return Ok(envios);

@@ -94,7 +94,7 @@ namespace MVC.Controllers
 			}
 			return View(listadoEnviosVMs);
 		}
-		public ActionResult EnviosxFecha(DateTime fechaInicio, DateTime fechaFin, Estado estado)
+		public ActionResult EnviosxFecha(DateTime fechaInicio, DateTime fechaFin, Estado? estado)
 		{
 
 			List<ListadoEnviosVM> listadoEnviosVMs = new List<ListadoEnviosVM>();
@@ -120,8 +120,8 @@ namespace MVC.Controllers
 				}
 				HttpClient client = new HttpClient();
 				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("Token"));
-				Task<HttpResponseMessage> tarea = client.GetAsync(urlBase + $"/envio/porFechas?fechaInicio={fechaInicio:yyyy-MM-dd}&fechaFin={fechaFin:yyyy-MM-dd}&clienteId={clienteId}");
-				tarea.Wait();
+                Task<HttpResponseMessage> tarea = client.GetAsync(urlBase + $"/envio/porFechas?fechaInicio={fechaInicio:yyyy-MM-dd}&fechaFin={fechaFin:yyyy-MM-dd}&clienteId={clienteId}&estado={(estado != null ? ((int)estado).ToString() : "")}");
+                tarea.Wait();
 				HttpResponseMessage respuesta = tarea.Result;
 				HttpContent contenido = respuesta.Content;
 				Task<string> body = contenido.ReadAsStringAsync();

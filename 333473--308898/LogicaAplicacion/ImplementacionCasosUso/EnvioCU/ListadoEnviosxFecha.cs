@@ -18,7 +18,7 @@ namespace LogicaAplicacion.ImplementacionCasosUso.EnvioCU
 		{
 			RepoEnvio = repositorioEnvio;
 		}
-		public IEnumerable<ListadoEnviosDTO> Ejecutar(DateTime fechaInicio, DateTime fechaFin , int clienteId, Estado estado)
+		public IEnumerable<ListadoEnviosDTO> Ejecutar(DateTime fechaInicio, DateTime fechaFin , int clienteId, Estado? estado)
 		{
 			
 			IEnumerable<ListadoEnviosDTO> listadoEnviosDTO = new List<ListadoEnviosDTO>();
